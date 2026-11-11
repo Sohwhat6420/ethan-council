@@ -1,4 +1,4 @@
-"""ETHAN COUNCIL, Scrutiniser benchmark and evaluation harness (BUILD step 1, 10 Nov 2026).
+"""HUMAN LLM COUNCIL, Scrutiniser benchmark and evaluation harness (BUILD step 1, 10 Nov 2026).
 
 Local only. Reads Claude Code transcripts on this machine, turns his AskUserQuestion answers into a
 multiple-choice benchmark of his own rulings, scrubs it, splits it by time, and scores predictor arms

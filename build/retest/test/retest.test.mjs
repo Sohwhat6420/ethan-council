@@ -137,7 +137,7 @@ test("server: items are blind, saves append, state resumes, partial restores, ho
   const base = `http://127.0.0.1:${port}`;
   try {
     const html = await (await fetch(base + "/")).text();
-    assert.ok(html.includes("<!doctype html>") && html.includes("Ethan Council"));
+    assert.ok(html.includes("<!doctype html>") && html.includes("Human LLM Council"));
 
     const items = await (await fetch(base + "/api/items")).json();
     assert.equal(items.items.length, 40);

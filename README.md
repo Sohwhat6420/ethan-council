@@ -1,29 +1,81 @@
-# Ethan Council
+# Human LLM Council
 
-![preview: research and early build](https://img.shields.io/badge/preview-research%20and%20early%20build-orange)
-[![test](https://github.com/Sohwhat6420/ethan-council/actions/workflows/test.yml/badge.svg)](https://github.com/Sohwhat6420/ethan-council/actions/workflows/test.yml)
-![licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue)
-![runs: local](https://img.shields.io/badge/runs-local%2C%206%20GB%20GPU-green)
+**A personalised human you run on your own hardware, built to intercept, audit and filter AI output before it
+reaches you: the made-up claims, the hallucinations and the subpar results.**
 
-**A council of small local models that think the way I do.** Four specialists, a Scrutiniser, a Designer, a
-Coder and an Orchestrator, each a LoRA adapter on a small open model, trained on my own decisions. Each night
-they are meant to reflect, sleep, dream and update their weights, with frontier models planning and gating
-every update so the council cannot make itself worse. It runs on a laptop, so my data stays at home.
+[![test](https://github.com/Sohwhat6420/human-llm-council/actions/workflows/test.yml/badge.svg)](https://github.com/Sohwhat6420/human-llm-council/actions/workflows/test.yml)
+[![Status: preview](https://img.shields.io/badge/status-preview-orange)](#status-11-november-2026)
+[![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
 
-**Why it's interesting:** my AI agents ask me hundreds of multiple-choice questions a month, and I take
-their recommended option 81.7% of the time. A model of me that scores well on those questions might just be
-copying the agent. This project measures the part that matters: it hides the agent's recommendation,
-shuffles the options, holds out my newest decisions, and refuses to ship a model unless it also predicts the
-cases where I *overrode* the agent. Both methods are published openly in [docs/PRIOR-ART.md](docs/PRIOR-ART.md).
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/held-out-dark.svg">
+  <img src="docs/img/held-out-light.svg" width="100%" alt="Held-out results on 375 decisions. Copying the agent's recommendation scores 71.5% overall and 0% on the 53 decisions where the human overrode the agent. The best untrained model, qwen3:4b zero-shot, scores 65.6% and 17.0%. A trained model must reach 70.6% overall and 24.5% on overrides.">
+</picture>
 
-By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)). **This is a preview:** the first research round is done,
-the first benchmark is built and measured, and no model has been trained on my real data yet.
+AI agents now produce more than one person can check. A Human LLM Council sits between them and you: a model of one
+person, trained on that person's own decisions, that reviews what the agents send and stops what that person would
+reject. The case it is being built for happened on 11 November 2026: an agent showed me a preview of a README that a
+newer version had already superseded. A council that knows I always reject stale work would have caught it and sent
+it back before it reached me.
+
+Each person trains their own and names it after themselves: *&lt;Your name&gt; Council*. Mine is **Ethan Council**,
+the reference instance, and every number on this page comes from it.
+
+- **It is scored on when you say no.** I take my agents' recommended option 81.7% of the time, so copying them looks
+  good overall and gets every override wrong (the chart above). The benchmark hides the recommendation, shuffles the
+  options and only passes a model that also predicts the decisions where I overrode the agent.
+- **It is designed for a laptop.** Four planned LoRA adapters share one small open model (Qwen3, 4-bit). The
+  training test, on synthetic data, peaked at 3.34 GB on a 6 GB laptop GPU, so the person's data can stay home.
+- **It is private by construction.** Names are pseudonymised and anything involving minors is dropped before
+  training. Training needs a signed approval, and a canary audit checks the model did not memorise rows (0 of 5
+  leaked; its positive control caught 5 of 5).
+
+> [!NOTE]
+> **This is a preview.** The benchmark is built and measured. No model has been trained on real data yet, and there
+> is nothing to install. The [status table](#status-11-november-2026) says exactly what exists.
+
+## Quick start
+
+The tests run on synthetic transcripts, so they need none of your data:
 
 ```bash
-git clone https://github.com/Sohwhat6420/ethan-council && cd ethan-council/build
-python -m pip install pytest && python -m pytest -q tests     # 21 tests, synthetic transcripts only
+git clone https://github.com/Sohwhat6420/human-llm-council && cd human-llm-council/build
+python -m pip install pytest && python -m pytest -q tests     # 21 tests
 node --test retest/test/retest.test.mjs                       # 14 tests for the retest tool (Node 18+)
 ```
+
+## How it works
+
+The council is four small members. The Scrutiniser reviews work the way I would and flags what I would reject; it
+is the first one being built. The Designer, the Coder and the Orchestrator follow. Each night they are
+meant to reflect on the day, sleep, dream and update their weights, with frontier models planning and gating every
+update so the council cannot make itself worse.
+
+```mermaid
+flowchart TB
+  S["My own history<br/>agent decisions now; messages, notes<br/>and design feedback later"] --> P["Privacy pipeline<br/>pseudonymise, redact, exclude,<br/>my signed review gate"]
+  P --> C[("One cleaned corpus,<br/>one view per member")]
+  C --> council
+  subgraph council["The council: four LoRA adapters on one small open model (Qwen3, 4-bit)"]
+    direction LR
+    L1["Scrutiniser<br/>reviews work the way I would"] ~~~ L2["Designer<br/>my taste"] ~~~ L3["Coder<br/>my code review"] ~~~ L4["Orchestrator<br/>routes; most like me overall"]
+  end
+  council --> night
+  subgraph night["Every night (design)"]
+    direction LR
+    R["Reflect on the day:<br/>decisions and corrections"] --> SL["Sleep: consolidate<br/>a candidate update"] --> D["Dream: rehearse<br/>on synthetic cases"] --> G{"Frontier-model gate:<br/>benchmark gates,<br/>canary audit"}
+  end
+  G -- better --> U["Adopt the update"]
+  G -- worse --> RB["Keep the previous adapters"]
+  U --> council
+```
+
+The data work runs on my laptop. The frontier models that plan and judge updates see aggregate scores and
+synthetic cases, never my raw data. The one planned exception: the first real training run may use a rented
+GPU for about an hour, and only if I approve uploading the cleaned, pseudonymised training view.
+
+The first demo is the Scrutiniser, because it has a clean target: predict my answer to a question an agent
+actually asked me, and score it against what I really chose.
 
 ## Status (11 November 2026)
 
@@ -52,40 +104,13 @@ Measured or built only. Nothing in this table is a projection.
 | qwen3:4b zero-shot, laptop GPU | **65.6%** | 79.9% | 17.0% |
 | qwen3:4b + 4 retrieved past decisions | 61.1% | 72.4% | 24.5% |
 
-On unshuffled rows, "always answer option 1" scores 79.2%, which is why that number is never used. The
+The two right-hand columns cover the 292 decisions where the agent marked a recommendation; the other 83 had none
+to take or override. On unshuffled rows, "always answer option 1" scores 79.2%, which is why that number is never used. The
 oracle row is the trap: copying the agent beats every model overall and gets every override wrong.
 
 **The bar a trained Scrutiniser has to clear (fixed before training):** at least 70.6% overall (the best
 baseline plus 5 points) with McNemar p < 0.05 against it, **and** at least 24.5% on overrides, no material
 drop when I follow the recommendation, at most 1% unparsed replies, and zero canary leaks.
-
-## How it fits together
-
-```mermaid
-flowchart TB
-  S["My own history<br/>agent decisions now; messages, notes<br/>and design feedback later"] --> P["Privacy pipeline<br/>pseudonymise, redact, exclude,<br/>my signed review gate"]
-  P --> C[("One cleaned corpus,<br/>one view per member")]
-  C --> council
-  subgraph council["The council: four LoRA adapters on one small open model (Qwen3, 4-bit)"]
-    direction LR
-    L1["Scrutiniser<br/>reviews work the way I would"] ~~~ L2["Designer<br/>my taste"] ~~~ L3["Coder<br/>my code review"] ~~~ L4["Orchestrator<br/>routes; most like me overall"]
-  end
-  council --> night
-  subgraph night["Every night (design)"]
-    direction LR
-    R["Reflect on the day:<br/>decisions and corrections"] --> SL["Sleep: consolidate<br/>a candidate update"] --> D["Dream: rehearse<br/>on synthetic cases"] --> G{"Frontier-model gate:<br/>benchmark gates,<br/>canary audit"}
-  end
-  G -- better --> U["Adopt the update"]
-  G -- worse --> RB["Keep the previous adapters"]
-  U --> council
-```
-
-The data work runs on my laptop. The frontier models that plan and judge updates see aggregate scores and
-synthetic cases, never my raw data. The one planned exception: the first real training run may use a rented
-GPU for about an hour, and only if I approve uploading the cleaned, pseudonymised training view.
-
-The first demo is the Scrutiniser, because it has a clean target: predict my answer to a question an agent
-actually asked me, and score it against what I really chose.
 
 ## What is in this repository
 
@@ -112,8 +137,8 @@ and Meta's US 12,513,102 B2. A model of one person that answers for them is not 
 To my knowledge no public benchmark scores a user-proxy on the cases where the user overrode the agent. Two
 methods are published openly here, dated 11 November 2026, so they stay free for anyone to use:
 **recommendation-blind training and testing** and **the override-accuracy deployment gate**. Full
-descriptions and citations: [docs/PRIOR-ART.md](docs/PRIOR-ART.md). Nothing here is patented and no patent
-has been applied for.
+descriptions and citations: [docs/PRIOR-ART.md](docs/PRIOR-ART.md). There is no patent or patent
+application on any of it.
 
 ## Security and privacy
 
@@ -128,4 +153,4 @@ has been applied for.
 
 ## Licence
 
-Apache-2.0. See [LICENSE](LICENSE).
+Apache-2.0. See [LICENSE](LICENSE). By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)).
