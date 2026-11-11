@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="referrer" content="no-referrer">
+<title>Retest</title>
+<style>
+  :root {
+    --bg: #f5f2ec;
+    --surface: #fcfaf6;
+    --ink: #1b1a17;
+    --ink-2: #44413a;
+    --muted: #6b665b;
+    --line: #e0dbd0;
+    --line-strong: #bdb6a7;
+    --accent: #1f6f66;
+    --accent-ink: #ffffff;
+    --accent-soft: #e2eeeb;
+    --warn: #8a4a1f;
+    --serif: Charter, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+    --fs-meta: 0.8125rem;
+    --fs-small: 0.9375rem;
+    --fs-body: 1rem;
+    --fs-lead: 1.125rem;
+    --fs-q: 1.4375rem;
+    --fs-title: 1.75rem;
+    --r: 10px;
+    --dur: 160ms;
+    --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+    --measure: 42rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14151a;
+      --surface: #1b1d23;
+      --ink: #ece9e1;
+      --ink-2: #c9c4b8;
+      --muted: #938e83;
+      --line: #2a2d35;
+      --line-strong: #434856;
+      --accent: #6fcabd;
+      --accent-ink: #0e1a18;
+      --accent-soft: #1b2b29;
+      --warn: #e2a06e;
+    }
+  }
+  /* Same dark tokens, forced by ?theme=dark (used by the headless smoke test; harmless otherwise). */
+  html[data-theme="dark"] {
+    --bg: #14151a; --surface: #1b1d23; --ink: #ece9e1; --ink-2: #c9c4b8; --muted: #938e83;
+    --line: #2a2d35; --line-strong: #434856; --accent: #6fcabd; --accent-ink: #0e1a18; --accent-soft: #1b2b29; --warn: #e2a06e;
+    color-scheme: dark;
+  }
+  html[data-theme="light"] {
+    --bg: #f5f2ec; --surface: #fcfaf6; --ink: #1b1a17; --ink-2: #44413a; --muted: #6b665b;
+    --line: #e0dbd0; --line-strong: #bdb6a7; --accent: #1f6f66; --accent-ink: #ffffff; --accent-soft: #e2eeeb; --warn: #8a4a1f;
+    color-scheme: light;
+  }
+  @media (min-width: 40em) { :root { --fs-q: 1.625rem; } }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: var(--fs-body)/1.55 var(--sans);
+    font-feature-settings: "tnum" 1, "kern" 1;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  button, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .top {
+    position: sticky; top: 0; z-index: 2;
+    background: var(--bg);
+  }
+  .bar-track { height: 3px; background: var(--line); }
+  .bar { height: 100%; width: 0; background: var(--accent); transition: width 320ms var(--ease); }
+  .top-row {
+    max-width: var(--measure); margin: 0 auto; padding: 12px 20px 0;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: var(--fs-meta); color: var(--muted);
+  }
+  .wordmark { letter-spacing: 0.01em; }
+  .count { font-variant-numeric: tabular-nums; }
+
+  main { flex: 1; width: 100%; max-width: var(--measure); margin: 0 auto; padding: 28px 20px 40px; }
+  @media (min-width: 40em) { main { padding: 48px 24px 64px; } }
+
+  .screen { opacity: 1; transform: none; transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
+  .screen.leave { opacity: 0; transform: translateY(-6px); }
+  .screen.enter { opacity: 0; transform: translateY(6px); }
+  @media (prefers-reduced-motion: reduce) {
+    .screen, .bar, .opt, .seg button, .primary { transition: none !important; }
+    .screen.leave, .screen.enter { transform: none; }
+  }
+
+  /* text roles */
+  .kicker { margin: 0 0 10px; font-size: var(--fs-meta); color: var(--muted); letter-spacing: 0.02em; }
+  .question { margin: 0; font: 500 var(--fs-q)/1.32 var(--serif); color: var(--ink); text-wrap: pretty; overflow-wrap: anywhere; }
+  .context { margin: 14px 0 0; font-size: var(--fs-small); color: var(--muted); line-height: 1.5; }
+  .title { margin: 0 0 20px; font: 500 var(--fs-title)/1.25 var(--serif); text-wrap: pretty; }
+  .lead { font-size: var(--fs-lead); color: var(--ink-2); margin: 0 0 16px; }
+  p { margin: 0 0 14px; }
+  .prose p, .prose li { color: var(--ink-2); }
+  .prose ul { padding-left: 1.2em; margin: 0 0 16px; }
+  .prose li { margin: 4px 0; }
+  .prose code { font: 0.9em var(--mono); background: var(--surface); border: 1px solid var(--line); padding: 1px 5px; border-radius: 5px; }
+
+  /* options */
+  .options { margin: 28px 0 0; display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    display: grid; grid-template-columns: 2rem 1fr; gap: 14px; align-items: start;
+    width: 100%; text-align: left;
+    padding: 14px 16px 14px 14px; min-height: 56px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+    transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  }
+  @media (hover: hover) { .opt:hover { border-color: var(--line-strong); } }
+  .opt[aria-checked="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+  .opt .key {
+    display: inline-grid; place-items: center; width: 2rem; height: 2rem; margin-top: 1px;
+    font: 0.8125rem var(--mono); color: var(--muted);
+    border: 1px solid var(--line-strong); border-radius: 7px; background: var(--bg);
+  }
+  .opt[aria-checked="true"] .key { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .opt .label { display: block; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+  .opt .desc { display: block; margin-top: 3px; font-size: var(--fs-small); color: var(--ink-2); line-height: 1.5; overflow-wrap: anywhere; }
+  .opt.other .label { font-weight: 500; color: var(--ink-2); }
+  .opt.other .key { font-family: var(--sans); font-weight: 600; } /* the letter O, not a mono zero */
+  textarea {
+    width: 100%; min-height: 5.5rem; resize: vertical;
+    padding: 12px 14px; background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line-strong); border-radius: var(--r); line-height: 1.5;
+  }
+  textarea::placeholder { color: var(--muted); }
+  .other-text { margin-top: -2px; }
+
+  /* confidence */
+  .conf { margin-top: 32px; }
+  .conf-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+  .conf-title { font-weight: 600; }
+  .conf-hint { font-size: var(--fs-meta); color: var(--muted); }
+  .seg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border: 1px solid var(--line-strong); border-radius: var(--r); overflow: hidden; background: var(--surface); }
+  .seg button {
+    min-height: 44px; border: 0; background: transparent; color: var(--ink-2);
+    font-variant-numeric: tabular-nums; font-weight: 500;
+    border-left: 1px solid var(--line); transition: background-color var(--dur) var(--ease);
+  }
+  .seg button:first-child { border-left: 0; }
+  @media (hover: hover) { .seg button:hover { background: var(--bg); } }
+  .seg button[aria-checked="true"] { background: var(--accent); color: var(--accent-ink); }
+  .seg button:focus-visible { outline-offset: -3px; }
+  .seg-ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: var(--fs-meta); color: var(--muted); }
+
+  /* note */
+  .note { margin-top: 24px; }
+  .link { background: none; border: 0; padding: 6px 0; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; font-size: var(--fs-small); }
+  .note textarea { margin-top: 8px; }
+
+  /* nav */
+  .nav { margin-top: 32px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+  .ghost { background: none; border: 1px solid transparent; color: var(--muted); padding: 10px 12px; border-radius: var(--r); min-height: 44px; }
+  @media (hover: hover) { .ghost:hover { color: var(--ink-2); border-color: var(--line); } }
+  .primary {
+    background: var(--accent); color: var(--accent-ink); border: 0; border-radius: var(--r);
+    padding: 0 22px; min-height: 44px; font-weight: 600; min-width: 7rem;
+    transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .primary:disabled { opacity: 0.38; cursor: not-allowed; }
+  .primary:not(:disabled):active { transform: translateY(1px); }
+  .hint { margin: 0; font-size: var(--fs-meta); color: var(--muted); text-align: center; min-height: 1.2em; }
+  .hint.warn { color: var(--warn); }
+
+  /* keys footer */
+  .keys {
+    max-width: var(--measure); margin: 0 auto; padding: 0 20px 20px; width: 100%;
+    font-size: var(--fs-meta); color: var(--muted); display: flex; gap: 18px; flex-wrap: wrap;
+  }
+  .keys kbd { font: 0.75rem var(--mono); border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; background: var(--surface); color: var(--ink-2); }
+  @media (hover: none) and (pointer: coarse) { .keys { display: none; } }
+
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin: 20px 0 24px; max-width: 28rem; }
+  .facts dt { font-size: var(--fs-meta); color: var(--muted); }
+  .facts dd { margin: 0; font-variant-numeric: tabular-nums; font-size: var(--fs-lead); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="bar-track"><div class="bar" id="bar"></div></div>
+  <div class="top-row"><span class="wordmark">Ethan Council · retest</span><span class="count" id="count"></span></div>
+</header>
+<main id="main"><noscript><p>This page needs JavaScript.</p></noscript></main>
+<footer class="keys" id="keys" hidden>
+  <span><kbd>1</kbd>–<kbd>4</kbd> choose</span>
+  <span><kbd>O</kbd> something else</span>
+  <span><kbd>←</kbd><kbd>→</kbd> or <kbd>Shift</kbd>+<kbd>1</kbd>–<kbd>5</kbd> confidence</span>
+  <span><kbd>N</kbd> note</span>
+  <span><kbd>Enter</kbd> next</span>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (s, r = document) => r.querySelector(s);
+  const main = $("#main");
+  const bar = $("#bar");
+  const count = $("#count");
+  const keysFooter = $("#keys");
+  const touchOnly = matchMedia("(hover: none) and (pointer: coarse)").matches;
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const S = { items: [], total: 0, answered: {}, partial: null, queue: [], pos: 0, mode: "main", q: null, saveTimer: null, sending: false };
+  const params = new URLSearchParams(location.search);
+  if (params.get("theme") === "dark" || params.get("theme") === "light") document.documentElement.dataset.theme = params.get("theme");
+
+  // ---------- data ----------
+  async function api(path, body) {
+    const res = await fetch(path, body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : undefined);
+    if (!res.ok) throw new Error(`${path} ${res.status}`);
+    return res.json();
+  }
+
+  function answeredCount() { return Object.keys(S.answered).length; }
+  function skippedIds() { return Object.keys(S.answered).filter((id) => S.answered[id].skipped); }
+
+  function updateProgress() {
+    const done = answeredCount();
+    bar.style.width = S.total ? `${(done / S.total) * 100}%` : "0";
+    count.textContent = S.total ? `${done} of ${S.total}` : "";
+  }
+
+  // ---------- tracking ----------
+  function now() { return performance.now(); }
+
+  function newTracker(item) {
+    return {
+      item_id: item.id, position: item.position, shown_at: new Date().toISOString(), t0: now(),
+      events: [], hover_dwell_ms: {}, hover_seq: [], considered: [],
+      first_interaction_ms: null, hidden_ms: 0, hiddenSince: null,
+      answer_idx: null, answer_kind: null, answer_text: "", confidence: null, comment: "",
+      input: { keyboard: false, pointer: false, touch: false },
+      resumed: false, prior_elapsed_ms: 0, prior_events: null,
+      region: null, regionSince: null, lastPointerSample: 0, otherOpen: false, noteOpen: false,
+    };
+  }
+
+  function elapsed(q) { return Math.round(now() - q.t0); }
+
+  function ev(type, data) {
+    const q = S.q; if (!q) return;
+    q.events.push(Object.assign({ t: elapsed(q), type }, data || {}));
+    scheduleAutosave();
+  }
+
+  function firstInteraction(kind) {
+    const q = S.q; if (!q) return;
+    if (q.first_interaction_ms === null) { q.first_interaction_ms = elapsed(q); ev("first-interaction", { via: kind }); }
+    if (kind in q.input) q.input[kind] = true;
+  }
+
+  function enterRegion(r) {
+    const q = S.q; if (!q || q.region === r) return;
+    leaveRegion();
+    q.region = r; q.regionSince = now();
+    ev("hover-in", { r });
+  }
+  function leaveRegion() {
+    const q = S.q; if (!q || !q.region) return;
+    const dwell = Math.round(now() - q.regionSince);
+    q.hover_dwell_ms[q.region] = (q.hover_dwell_ms[q.region] || 0) + dwell;
+    q.hover_seq.push({ r: q.region, in: Math.round(q.regionSince - q.t0), ms: dwell });
+    ev("hover-out", { r: q.region, ms: dwell });
+    q.region = null; q.regionSince = null;
+  }
+
+  main.addEventListener("pointerover", (e) => {
+    if (!S.q) return;
+    const el = e.target.closest("[data-region]");
+    if (el) enterRegion(el.dataset.region);
+  });
+  main.addEventListener("pointerout", (e) => {
+    if (!S.q) return;
+    const el = e.target.closest("[data-region]");
+    const to = e.relatedTarget && e.relatedTarget.closest ? e.relatedTarget.closest("[data-region]") : null;
+    if (el && (!to || to.dataset.region !== el.dataset.region)) leaveRegion();
+  });
+  main.addEventListener("pointermove", (e) => {
+    const q = S.q; if (!q) return;
+    firstInteraction(e.pointerType === "touch" ? "touch" : "pointer");
+    const t = now();
+    if (t - q.lastPointerSample < 150) return;
+    q.lastPointerSample = t;
+    q.events.push({ t: elapsed(q), type: "pointer", x: Math.round(e.clientX), y: Math.round(e.clientY), r: q.region || null });
+  }, { passive: true });
+  main.addEventListener("pointerdown", (e) => firstInteraction(e.pointerType === "touch" ? "touch" : "pointer"), { passive: true });
+  document.addEventListener("scroll", () => { if (S.q) { firstInteraction("pointer"); ev("scroll", { y: Math.round(scrollY) }); } }, { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    const q = S.q; if (!q) return;
+    if (document.hidden) { q.hiddenSince = now(); ev("hidden"); }
+    else if (q.hiddenSince !== null) { q.hidden_ms += Math.round(now() - q.hiddenSince); q.hiddenSince = null; ev("visible"); }
+  });
+
+  // ---------- autosave (partial) ----------
+  function snapshot(q, final) {
+    const total = elapsed(q) + q.prior_elapsed_ms;
+    const hidden = q.hidden_ms + (q.hiddenSince !== null ? Math.round(now() - q.hiddenSince) : 0);
+    return {
+      item_id: q.item_id, position: q.position, shown_at: q.shown_at,
+      skipped: false, answer_kind: q.answer_kind, answer_idx: q.answer_idx, answer_text: q.answer_text,
+      confidence: q.confidence, comment: q.comment,
+      first_interaction_ms: q.first_interaction_ms, total_think_ms: total, active_think_ms: total - hidden, hidden_ms: hidden,
+      elapsed_ms: elapsed(q), considered: q.considered.slice(), hover_dwell_ms: Object.assign({}, q.hover_dwell_ms), hover_seq: q.hover_seq.slice(),
+      events: q.events.slice(), prior_events: q.prior_events, resumed: q.resumed, input: Object.assign({}, q.input),
+      viewport: { w: innerWidth, h: innerHeight, touch: touchOnly, dark: matchMedia("(prefers-color-scheme: dark)").matches },
+      final: Boolean(final),
+    };
+  }
+  function scheduleAutosave() {
+    clearTimeout(S.saveTimer);
+    S.saveTimer = setTimeout(() => { if (S.q) api("/api/partial", snapshot(S.q, false)).catch(() => {}); }, 900);
+  }
+
+  // ---------- screens ----------
+  function swap(render) {
+    const old = main.firstElementChild;
+    const go = () => {
+      main.innerHTML = "";
+      const el = render();
+      el.classList.add("screen", "enter");
+      main.appendChild(el);
+      // A timer, not rAF: the page must settle to full opacity even when no frame is being composited.
+      setTimeout(() => el.classList.remove("enter"), 20);
+      scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+    };
+    if (old && !reduceMotion) { old.classList.add("leave"); setTimeout(go, 150); } else go();
+  }
+
+  function el(tag, attrs, ...children) {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === "class") n.className = v;
+      else if (k === "dataset") Object.assign(n.dataset, v);
+      else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+      else if (v === true) n.setAttribute(k, "");
+      else if (v !== false && v !== null && v !== undefined) n.setAttribute(k, v);
+    }
+    for (const c of children.flat()) if (c !== null && c !== undefined) n.append(c.nodeType ? c : document.createTextNode(String(c)));
+    return n;
+  }
+
+  function renderIntro() {
+    const done = answeredCount();
+    const resuming = done > 0 && done < S.total;
+    const wrap = el("section", { class: "prose" });
+    wrap.append(
+      el("h1", { class: "title" }, resuming ? "Welcome back." : "Forty of your own rulings, asked again."),
+      el("p", { class: "lead" }, resuming
+        ? `${done} of ${S.total} are saved. The next question is where you left off.`
+        : `Between 3 and 10 November you answered 375 questions in Claude Code. Forty of them are here, with the options shuffled and Claude's recommendation removed.`),
+      el("p", null, "Answer as you would answer now. Don't try to remember what you picked the first time; the point is to measure how stable your own judgement is, which sets the ceiling for any model of you."),
+      el("p", null, "Everything on this page is recorded and saved locally after each question: how long you take, where the pointer rests, which options you tried before settling, your confidence, and any note you leave. There is no clock on screen. Close the tab whenever you like; it resumes."),
+      el("ul", null,
+        el("li", null, "Pick one option, or write your own under \"Something else\"."),
+        el("li", null, "Say how sure you are, from a guess (1) to certain (5)."),
+        el("li", null, "Leave a note when something is off: missing context, a false choice, a question you'd never be asked again."),
+        el("li", null, "Skip is there for questions that make no sense out of their session."),
+      ),
+      el("div", { class: "row" },
+        el("button", { class: "primary", onclick: () => startQueue("main") }, resuming ? "Continue" : "Begin"),
+      ),
+    );
+    return wrap;
+  }
+
+  function renderDone() {
+    const done = answeredCount();
+    const skipped = skippedIds();
+    const wrap = el("section", { class: "prose" });
+    const dl = el("dl", { class: "facts" },
+      el("div", null, el("dt", null, "Answered"), el("dd", null, String(done - skipped.length))),
+      el("div", null, el("dt", null, "Skipped"), el("dd", null, String(skipped.length))),
+    );
+    wrap.append(
+      el("h1", { class: "title" }, done >= S.total ? "That's all forty." : "Nothing left in this pass."),
+      el("p", { class: "lead" }, "Every answer is on disk under build/local/retest-2026-11-10/responses.jsonl, which git never sees."),
+      dl,
+      el("p", null, "The scorer runs locally and prints only aggregates: ", el("code", null, "node build/retest/score.mjs"), "."),
+    );
+    const row = el("div", { class: "row" });
+    if (skipped.length) row.append(el("button", { class: "primary", onclick: () => startQueue("skipped") }, `Go back to the ${skipped.length} skipped`));
+    row.append(el("button", { class: "ghost", onclick: () => swap(renderIntro) }, "Back to the start"));
+    wrap.append(row);
+    return wrap;
+  }
+
+  function startQueue(mode) {
+    S.mode = mode;
+    S.queue = mode === "skipped"
+      ? S.items.filter((it) => S.answered[it.id] && S.answered[it.id].skipped)
+      : S.items.filter((it) => !S.answered[it.id]);
+    S.pos = 0;
+    nextInQueue();
+  }
+
+  function nextInQueue() {
+    if (S.pos >= S.queue.length) { S.q = null; keysFooter.hidden = true; swap(renderDone); return; }
+    const item = S.queue[S.pos];
+    swap(() => renderQuestion(item));
+  }
+
+  function renderQuestion(item) {
+    const q = newTracker(item);
+    S.q = q;
+    keysFooter.hidden = touchOnly;
+    const n = item.options.length;
+
+    const optionsEl = el("div", { class: "options", role: "radiogroup", "aria-label": "Options" });
+    const optButtons = item.options.map((o, i) =>
+      el("button", { class: "opt", type: "button", role: "radio", "aria-checked": "false", dataset: { region: `option-${i}`, idx: String(i) }, onclick: () => choose(i, "pointer") },
+        el("span", { class: "key", "aria-hidden": "true" }, String(i + 1)),
+        el("span", { class: "body" }, el("span", { class: "label" }, o.label), o.description ? el("span", { class: "desc" }, o.description) : null),
+      ),
+    );
+    const otherBtn = el("button", { class: "opt other", type: "button", role: "radio", "aria-checked": "false", dataset: { region: "other", idx: "other" }, onclick: () => choose("other", "pointer") },
+      el("span", { class: "key", "aria-hidden": "true" }, "O"),
+      el("span", { class: "body" }, el("span", { class: "label" }, "Something else"), el("span", { class: "desc" }, "Write what you would have said.")),
+    );
+    const otherText = el("textarea", { class: "other-text", hidden: true, "aria-label": "Your own answer", placeholder: "What you would have said", dataset: { region: "other-text" },
+      oninput: (e) => { q.answer_text = e.target.value; ev("other-type", { len: e.target.value.length }); refresh(); } });
+    optionsEl.append(...optButtons, otherBtn, otherText);
+
+    const segButtons = [1, 2, 3, 4, 5].map((c) => el("button", { type: "button", role: "radio", "aria-checked": "false", "aria-label": `Confidence ${c} of 5`, dataset: { c: String(c) }, onclick: () => setConf(c, "pointer") }, String(c)));
+    const conf = el("section", { class: "conf", dataset: { region: "confidence" } },
+      el("div", { class: "conf-head" }, el("span", { class: "conf-title" }, "How sure are you?"), touchOnly ? null : el("span", { class: "conf-hint" }, "← → or Shift+1–5")),
+      el("div", { class: "seg", role: "radiogroup", "aria-label": "Confidence, 1 to 5" }, ...segButtons),
+      el("div", { class: "seg-ends", "aria-hidden": "true" }, el("span", null, "A guess"), el("span", null, "Certain")),
+    );
+
+    const noteArea = el("textarea", { id: "note", hidden: true, "aria-label": "Note on this question", placeholder: "Anything about this one: what you were weighing, what feels off, what context you'd want.",
+      oninput: (e) => { q.comment = e.target.value; ev("note-type", { len: e.target.value.length }); } });
+    const noteToggle = el("button", { class: "link", type: "button", "aria-expanded": "false", onclick: () => toggleNote() }, "Add a note");
+    const note = el("section", { class: "note", dataset: { region: "comment" } }, noteToggle, noteArea);
+
+    const hint = el("p", { class: "hint", "aria-live": "polite" });
+    const nextBtn = el("button", { class: "primary", type: "button", disabled: true, onclick: () => submit(false) }, "Next");
+    const skipBtn = el("button", { class: "ghost", type: "button", onclick: () => submit(true) }, "Skip this one");
+    const nav = el("div", { class: "nav", dataset: { region: "nav" } }, skipBtn, hint, nextBtn);
+
+    const art = el("article", { class: "q" },
+      el("p", { class: "kicker", dataset: { region: "header" } }, item.header || "Question"),
+      el("h1", { class: "question", dataset: { region: "question" } }, item.question),
+      el("p", { class: "context", dataset: { region: "context" } }, item.context),
+      optionsEl, conf, note, nav,
+    );
+
+    // Restore a half-finished question after a reload.
+    const part = S.partial;
+    if (part && part.item_id === item.id) {
+      q.resumed = true;
+      q.prior_elapsed_ms = Number(part.total_think_ms) || 0;
+      q.prior_events = part.events || null;
+      q.considered = Array.isArray(part.considered) ? part.considered.slice() : [];
+      if (part.hover_dwell_ms) q.hover_dwell_ms = Object.assign({}, part.hover_dwell_ms);
+      if (part.answer_kind === "other") { q.answer_kind = "other"; q.answer_text = part.answer_text || ""; q.otherOpen = true; otherText.hidden = false; otherText.value = q.answer_text; }
+      else if (Number.isInteger(part.answer_idx)) { q.answer_kind = "option"; q.answer_idx = part.answer_idx; }
+      if (Number.isInteger(part.confidence)) q.confidence = part.confidence;
+      if (part.comment) { q.comment = part.comment; noteArea.hidden = false; noteArea.value = q.comment; noteToggle.setAttribute("aria-expanded", "true"); noteToggle.textContent = "Hide note"; }
+      S.partial = null;
+      ev("resumed", { prior_ms: q.prior_elapsed_ms });
+    }
+    ev("show", { n_options: n, viewport: { w: innerWidth, h: innerHeight } });
+
+    function refresh() {
+      optButtons.forEach((b, i) => b.setAttribute("aria-checked", String(q.answer_kind === "option" && q.answer_idx === i)));
+      otherBtn.setAttribute("aria-checked", String(q.answer_kind === "other"));
+      segButtons.forEach((b) => b.setAttribute("aria-checked", String(q.confidence === Number(b.dataset.c))));
+      const hasAnswer = q.answer_kind === "option" || (q.answer_kind === "other" && q.answer_text.trim().length > 0);
+      const ready = hasAnswer && q.confidence !== null;
+      nextBtn.disabled = !ready;
+      hint.classList.remove("warn");
+      hint.textContent = ready ? "" : !hasAnswer ? (q.answer_kind === "other" ? "Write your answer, then rate it." : "") : "And how sure are you?";
+    }
+
+    function choose(which, via) {
+      firstInteraction(via);
+      if (which === "other") {
+        q.answer_kind = "other"; q.answer_idx = null; q.otherOpen = true; otherText.hidden = false;
+        if (!q.considered.length || q.considered[q.considered.length - 1] !== "other") q.considered.push("other");
+        ev("select", { opt: "other", via });
+        otherText.focus();
+      } else {
+        if (q.answer_kind === "option" && q.answer_idx === which) {
+          q.answer_kind = null; q.answer_idx = null; ev("deselect", { opt: which, via });
+        } else {
+          q.answer_kind = "option"; q.answer_idx = which;
+          if (!q.considered.length || q.considered[q.considered.length - 1] !== which) q.considered.push(which);
+          ev("select", { opt: which, via, nth: q.considered.length });
+        }
+        if (q.otherOpen && !q.answer_text.trim()) { otherText.hidden = true; q.otherOpen = false; }
+      }
+      refresh();
+    }
+
+    function setConf(c, via) {
+      firstInteraction(via);
+      q.confidence = c;
+      ev("confidence", { c, via });
+      refresh();
+    }
+
+    function toggleNote() {
+      q.noteOpen = !q.noteOpen;
+      noteArea.hidden = !q.noteOpen;
+      noteToggle.setAttribute("aria-expanded", String(q.noteOpen));
+      noteToggle.textContent = q.noteOpen ? "Hide note" : "Add a note";
+      ev(q.noteOpen ? "note-open" : "note-close");
+      if (q.noteOpen) noteArea.focus();
+    }
+
+    async function submit(skipped) {
+      if (S.sending) return;
+      if (!skipped && nextBtn.disabled) { refresh(); hint.classList.add("warn"); return; }
+      leaveRegion();
+      ev(skipped ? "skip" : "submit");
+      const rec = snapshot(q, true);
+      rec.skipped = Boolean(skipped);
+      rec.submitted_at = new Date().toISOString();
+      if (skipped) { rec.answer_kind = null; rec.answer_idx = null; rec.answer_text = ""; rec.confidence = null; }
+      S.sending = true;
+      nextBtn.disabled = true; skipBtn.disabled = true;
+      hint.classList.remove("warn"); hint.textContent = "Saving…";
+      let saved = false;
+      for (let attempt = 0; attempt < 6 && !saved; attempt++) {
+        try {
+          const r = await api("/api/save", rec);
+          saved = r && r.ok;
+        } catch {
+          hint.classList.add("warn"); hint.textContent = "Couldn't save; retrying…";
+          await new Promise((ok) => setTimeout(ok, 600 * (attempt + 1)));
+        }
+      }
+      S.sending = false;
+      if (!saved) { hint.classList.add("warn"); hint.textContent = "Still can't reach the server. Is it running? Your answer is kept on this page; press Next again."; nextBtn.disabled = false; skipBtn.disabled = false; return; }
+      S.answered[item.id] = { skipped: rec.skipped, at: rec.submitted_at };
+      updateProgress();
+      S.q = null;
+      S.pos += 1;
+      nextInQueue();
+    }
+
+    // Keyboard shortcuts for this question.
+    art.keyHandler = (e) => {
+      const inText = e.target && (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT");
+      if (inText) {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submit(false); }
+        if (e.key === "Escape") { e.target.blur(); }
+        return;
+      }
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      const digit = /^Digit([1-9])$/.exec(e.code);
+      if (digit && e.shiftKey) { const c = Number(digit[1]); if (c >= 1 && c <= 5) { e.preventDefault(); firstInteraction("keyboard"); setConf(c, "keyboard"); } return; }
+      if (digit) { const i = Number(digit[1]) - 1; if (i < n) { e.preventDefault(); firstInteraction("keyboard"); choose(i, "keyboard"); } return; }
+      if (e.key === "o" || e.key === "O") { e.preventDefault(); firstInteraction("keyboard"); choose("other", "keyboard"); return; }
+      if (e.key === "n" || e.key === "N") { e.preventDefault(); firstInteraction("keyboard"); if (!q.noteOpen) toggleNote(); else noteArea.focus(); return; }
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault(); firstInteraction("keyboard");
+        const cur = q.confidence === null ? (e.key === "ArrowRight" ? 0 : 6) : q.confidence;
+        setConf(Math.min(5, Math.max(1, cur + (e.key === "ArrowRight" ? 1 : -1))), "keyboard");
+        return;
+      }
+      if (e.key === "Enter") { e.preventDefault(); firstInteraction("keyboard"); submit(false); }
+    };
+
+    refresh();
+    return art;
+  }
+
+  document.addEventListener("keydown", (e) => {
+    const art = main.querySelector("article.q");
+    if (art && art.keyHandler && S.q) art.keyHandler(e);
+  });
+
+  // ---------- boot ----------
+  async function boot() {
+    try {
+      const [{ items, meta }, st] = await Promise.all([api("/api/items"), api("/api/state")]);
+      S.items = items.slice().sort((a, b) => a.position - b.position);
+      S.total = meta.n;
+      S.answered = st.answered || {};
+      S.partial = st.partial || null;
+      updateProgress();
+      if (params.get("go") === "1") startQueue("main"); else swap(renderIntro);
+    } catch (e) {
+      main.innerHTML = "";
+      main.append(el("section", { class: "prose" }, el("h1", { class: "title" }, "The retest server isn't answering."), el("p", null, "Start it with ", el("code", null, "node build/retest/server.mjs"), " and reload.")));
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+name: test
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Python tests (synthetic transcripts only)
+        working-directory: build
+        run: |
+          python -m pip install pytest
+          python -m pytest -q -p no:cacheprovider tests
+      - name: Retest tool tests (synthetic fixtures only)
+        working-directory: build
+        run: node --test retest/test/retest.test.mjs

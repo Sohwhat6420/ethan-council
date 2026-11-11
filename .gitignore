@@ -1,0 +1,15 @@
+# Belt and braces: no data, corpora, transcripts, exports or weights ever enter this repo.
+data/
+local/
+corpus/
+results/
+*.jsonl
+!build/retest/fixtures/fixture-rows.jsonl
+*.safetensors
+*.gguf
+*.bin
+*.pt
+.venv*/
+__pycache__/
+.pytest_cache/
+node_modules/

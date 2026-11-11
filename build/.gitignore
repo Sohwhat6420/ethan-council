@@ -1,0 +1,14 @@
+# Everything derived from the owner's transcripts stays on his machine and out of git
+# (docs/PRIVACY-PIPELINE.md, rules 1 and 3).
+data/
+local/
+smoke-data/
+# Per-item result files carry hashed ids only, but they stay local too.
+results/
+__pycache__/
+.pytest_cache/
+*.pyc
+# Training environments and model output (regenerable)
+.venv*/
+adapters/
+*.safetensors
