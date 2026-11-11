@@ -49,7 +49,7 @@ def write_transcript(root: Path, project: str, events: list[dict]) -> None:
 
 def test_scrub_regexes():
     s = scrubber()
-    r = s.scrub("mail a@b.com call +65 9123 4567 id S1234567D key sk-ant-abcdefghijklmnopqrstu "
+    r = s.scrub("mail someone@example.com call +65 9000 0000 id S0000000A key sk-ant-abcdefghijklmnopqrstu "
                 "see https://x.com/p?token=abc path C:/Users/someone/projects/councilresearchfolder/x")
     assert "<EMAIL>" in r.text and "<PHONE>" in r.text and "<NRIC>" in r.text and "<KEY>" in r.text
     assert "https://x.com/p?<QUERY>" in r.text
