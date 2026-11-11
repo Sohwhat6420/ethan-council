@@ -16,7 +16,7 @@ copying the agent. This project measures the part that matters: it hides the age
 shuffles the options, holds out my newest decisions, and refuses to ship a model unless it also predicts the
 cases where I *overrode* the agent. Both methods are published openly in [docs/PRIOR-ART.md](docs/PRIOR-ART.md).
 
-By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)). **This is a preview:** the research is done,
+By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)). **This is a preview:** the first research round is done,
 the first benchmark is built and measured, and no model has been trained on my real data yet.
 
 ```bash
@@ -63,26 +63,26 @@ drop when I follow the recommendation, at most 1% unparsed replies, and zero can
 
 ```mermaid
 flowchart TB
-  subgraph home["On my laptop (nothing raw leaves it)"]
-    S[My own history<br/>agent decisions now;<br/>messages, notes, design feedback later] --> P[Privacy pipeline<br/>pseudonymise, redact, exclude,<br/>my signed review gate]
-    P --> C[(One cleaned corpus)]
-    C --> V1[Scrutiniser view] & V2[Designer view] & V3[Coder view] & V4[Orchestrator view]
-    B[Small open base model<br/>Qwen3, 4-bit] --- L1 & L2 & L3 & L4
-    V1 --> L1[Scrutiniser LoRA<br/>reviews work the way I would]
-    V2 --> L2[Designer LoRA<br/>my taste]
-    V3 --> L3[Coder LoRA<br/>my code review]
-    V4 --> L4[Orchestrator LoRA<br/>routes, most like me overall]
+  S["My own history<br/>agent decisions now; messages, notes<br/>and design feedback later"] --> P["Privacy pipeline<br/>pseudonymise, redact, exclude,<br/>my signed review gate"]
+  P --> C[("One cleaned corpus,<br/>one view per member")]
+  C --> council
+  subgraph council["The council: four LoRA adapters on one small open model (Qwen3, 4-bit)"]
+    direction LR
+    L1["Scrutiniser<br/>reviews work the way I would"] ~~~ L2["Designer<br/>my taste"] ~~~ L3["Coder<br/>my code review"] ~~~ L4["Orchestrator<br/>routes; most like me overall"]
   end
-  subgraph night["Nightly loop (design)"]
-    R[Reflect on the day's<br/>decisions and corrections] --> SL[Sleep: consolidate<br/>into a candidate update]
-    SL --> D[Dream: rehearse on<br/>synthetic cases]
-    D --> G{Frontier-model gate<br/>plan, judge, benchmark gates,<br/>canary audit}
-    G -- better --> U[Adopt the new adapter]
-    G -- worse --> RB[Keep yesterday's,<br/>roll back]
+  council --> night
+  subgraph night["Every night (design)"]
+    direction LR
+    R["Reflect on the day:<br/>decisions and corrections"] --> SL["Sleep: consolidate<br/>a candidate update"] --> D["Dream: rehearse<br/>on synthetic cases"] --> G{"Frontier-model gate:<br/>benchmark gates,<br/>canary audit"}
   end
-  L1 & L2 & L3 & L4 --> R
-  U --> L1
+  G -- better --> U["Adopt the update"]
+  G -- worse --> RB["Keep the previous adapters"]
+  U --> council
 ```
+
+The data work runs on my laptop. The frontier models that plan and judge updates see aggregate scores and
+synthetic cases, never my raw data. The one planned exception: the first real training run may use a rented
+GPU for about an hour, and only if I approve uploading the cleaned, pseudonymised training view.
 
 The first demo is the Scrutiniser, because it has a clean target: predict my answer to a question an agent
 actually asked me, and score it against what I really chose.
