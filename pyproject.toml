@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "human-llm-council"
+dynamic = ["version"]
+description = "A local, private model of one person's decisions that reviews what AI agents send them: benchmark, privacy pipeline and evaluation harness."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = []   # the harness is pure standard library
+keywords = ["llm", "evaluation", "benchmark", "privacy", "lora", "user-modelling"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+# Only for build/train/ (LoRA training on a CUDA or ROCm GPU). Unpinned on purpose: install the torch build for your
+# GPU first. Each training run records the exact versions it used in its run-meta.json.
+train = ["torch", "transformers", "peft", "trl", "datasets", "bitsandbytes; platform_machine == 'x86_64'"]
+
+[project.scripts]
+council = "council_eval.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Sohwhat6420/human-llm-council"
+Changelog = "https://github.com/Sohwhat6420/human-llm-council/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+package-dir = { "" = "build" }
+packages = ["council_eval"]
+
+[tool.setuptools.dynamic]
+version = { attr = "council_eval.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["build/tests"]
+addopts = "-p no:cacheprovider"

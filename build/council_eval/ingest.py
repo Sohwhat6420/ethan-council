@@ -1,8 +1,8 @@
-"""Stage 0 and 1: turn his AskUserQuestion answers in Claude Code transcripts into benchmark rows.
+"""Stage 0 and 1: turn the owner's AskUserQuestion answers in Claude Code transcripts into benchmark rows.
 
-Why this source first: every row is a real decision he made, with the options he was offered, a timestamp, and
+Why this source first: every row is a real decision the owner made, with the options they were offered, a timestamp, and
 (usually) the option Claude recommended. That gives a clean, multiple-choice "Scrutiniser" task with a strong,
-honest baseline: "he picks whatever was marked (Recommended)". A council member is only useful if it beats that.
+honest baseline: "the owner picks whatever was marked (Recommended)". A council member is only useful if it beats that.
 
 Every text field is scrubbed before it is written. Rows that match an exclusion pattern are dropped, not redacted.
 Only counts are printed; no question text is ever printed.

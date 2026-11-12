@@ -4,7 +4,7 @@
   python -m council_eval.synthetic --out build/local/syn-data --n 1500 --realistic   # same SHAPE as the real view
 
 The folder gets a SYNTHETIC.marker file; only a folder with that marker may skip the review-gate approval
-(train_lora_amd.py --no-approval-check). Real data can never be trained without his hash-bound approval.
+(train_lora_amd.py --no-approval-check). Real data can never be trained without the owner's hash-bound approval.
 
 --realistic draws row lengths from the measured distribution of the real training view (counts only, 10 Nov:
 mean about 225 tokens, 1,536 max_len) so a pipeline test on it records a VRAM peak and s/step that mean something.
@@ -19,7 +19,7 @@ from pathlib import Path
 
 from .approval import SYNTHETIC_MARKER
 from .ingest import write_jsonl
-from .make_sft import build
+from .make_sft import build, view_settings, write_view
 
 TOPICS = ["storage", "router", "colour", "font", "model", "budget", "schedule", "name", "deploy", "backup", "layout", "test"]
 _WORDS = ("the lane should keep the file local and report counts only before anything else runs tonight because "
@@ -57,15 +57,18 @@ def rows(n: int = 60, seed: int = 0, realistic: bool = False) -> list[dict]:
     return out
 
 
-def write(out: Path, n: int = 60, seed: int = 0, realistic: bool = False, n_canaries: int = 5) -> dict:
+def write(out: Path, n: int = 60, seed: int = 0, realistic: bool = False, n_canaries: int = 5,
+          prompt: str | None = None) -> dict:
     r = rows(n, seed, realistic)
     train, test = r[: int(len(r) * 0.8)], r[int(len(r) * 0.8):]
-    tr, va, can = build(train, n_canaries=n_canaries)
+    view = view_settings(prompt, owner="the owner")
+    tr, va, can = build(train, n_canaries=n_canaries, prompt=view["prompt"], owner=view["owner"])
     out.mkdir(parents=True, exist_ok=True)
     write_jsonl(out / "sft_train.jsonl", tr)
     write_jsonl(out / "sft_val.jsonl", va)
     write_jsonl(out / "test.jsonl", test)
     (out / "canaries.json").write_text(json.dumps(can, indent=1), encoding="utf-8")
+    write_view(out, view)
     (out / SYNTHETIC_MARKER).write_text("synthetic rows from council_eval.synthetic; no real data\n", encoding="utf-8")
     return {"train": len(tr), "val": len(va), "test": len(test), "canaries": len(can), "realistic": realistic}
 

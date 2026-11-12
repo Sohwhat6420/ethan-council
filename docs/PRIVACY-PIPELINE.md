@@ -1,7 +1,7 @@
 # Privacy pipeline (design)
 
-The council learns from one person's own history: his answers to his AI agents' questions now, and later
-his messages, notes and design feedback. That history is full of other people. This pipeline is how it is
+The council learns from one person's own history: their answers to their AI agents' questions now, and later
+their messages, notes and design feedback. That history is full of other people. This pipeline is how it is
 cleaned before anything reaches a model's weights. Stages 0 to 5 and 7 are built and tested for the first
 data source (agent rulings, in [`build/council_eval/`](../build/council_eval/)); the message and note
 sources are designed, not built.
@@ -40,9 +40,9 @@ flowchart LR
 | Stage | What happens | Built? |
 | --- | --- | --- |
 | 0 Ingest | Parse each source into one schema (source, thread, timestamp, sender, text). The raw copy is never edited. | Yes, for agent rulings (`ingest.py`) |
-| 1 Segment and attribute | Mark the owner's own words against other people's, pasted text and tool output. Only his words are training targets. | Yes, for rulings (sidechains and lane sessions skipped) |
+| 1 Segment and attribute | Mark the owner's own words against other people's, pasted text and tool output. Only the owner's words are training targets. | Yes, for rulings (sidechains and lane sessions skipped) |
 | 2 Classify | Regexes catch emails, national ID numbers, phone and card numbers, keys, secrets and URL queries. A small local model (3 to 8 billion parameters, 4-bit) adds labels such as health, relationship, family, money, minors and third-party private facts. | Regex layer yes (`scrub.py`); local-model labels designed |
-| 3 Pseudonymise | Real names and nicknames become stable per-person tokens (an HMAC of the name under a local key) with a role tag: PEER, AUTHORITY, FAMILY, PARTNER, OTHER. How he talks to a peer and to an authority survives; who they are does not. The alias table and key never leave the machine. | Yes (`scrub.py`) |
+| 3 Pseudonymise | Real names and nicknames become stable per-person tokens (an HMAC of the name under a local key) with a role tag: PEER, AUTHORITY, FAMILY, PARTNER, OTHER. How the owner talks to a peer and to an authority survives; who they are does not. The alias table and key never leave the machine. | Yes (`scrub.py`) |
 | 4 Redact or exclude | By label: EXCLUDE (credentials, IDs, minors, other people's health), REDACT (a typed placeholder), STYLE-ONLY (tone kept, content masked), KEEP. | Yes for EXCLUDE and REDACT |
 | 5 Review gate | A local sheet shows samples before and after cleaning plus every count. The owner approves, edits the rules or rejects; the approval binds to the files' SHA-256s. Training refuses to start without it. | Yes (`review_sheet.py`, `approval.py`) |
 | 6 Views | One cleaned corpus, filtered into one training view per council member, so there is one place to audit and one approval. | Yes for the Scrutiniser (`make_sft.py`) |

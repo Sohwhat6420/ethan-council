@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Score the retest: agreement with his original choices, by stratum, confidence and think time; Cohen's kappa.
+// Score the retest: agreement with the owner's original choices, by stratum, confidence and think time; Cohen's kappa.
 // Writes RESULTS.md next to the responses (local, git-ignored) and prints aggregate numbers only.
 //
 //   node score.mjs [--data-dir <dir>] [--items <items.json>] [--responses <responses.jsonl>] [--out <RESULTS.md>]

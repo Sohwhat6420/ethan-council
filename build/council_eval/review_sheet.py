@@ -1,9 +1,9 @@
-"""Stage 5 review gate: write a LOCAL review sheet for him, and record his approval.
+"""Stage 5 review gate: write a LOCAL review sheet for the owner, and record their approval.
 
   python -m council_eval.review_sheet            # writes build/local/review-sheet-<date>.md (git-ignored)
-  python -m council_eval.review_sheet --approve "his note"   # only when HE has read the sheet and says yes
+  python -m council_eval.review_sheet --approve "your note"   # only when YOU (the owner) have read the sheet and says yes
 
-The sheet shows the scrub counts and a random sample of scrubbed rows (including free-text answers), so he can see
+The sheet shows the scrub counts and a random sample of scrubbed rows (including free-text answers), so the owner can see
 what would be trained on. Nothing trains, and nothing is uploaded, until local/review-gate-approval.json says approved.
 """
 from __future__ import annotations
@@ -19,6 +19,7 @@ from pathlib import Path
 from . import config
 from .approval import APPROVAL_FILES, hashes, write_approval
 from .ingest import read_jsonl
+from .make_sft import approval_file
 
 
 def sheet(rows: list[dict], n: int = 25, seed: int = 0, data_dir: Path | None = None) -> str:
@@ -44,10 +45,10 @@ def sheet(rows: list[dict], n: int = 25, seed: int = 0, data_dir: Path | None = 
             out.append(f"## [{kind}] {r['ts'][:10]} {r['header']}")
             out.append(r["question"])
             for i, o in enumerate(r["options"]):
-                mark = " <= his answer" if r.get("answer_idx") == i or i in (r.get("answer_set") or []) else ""
+                mark = " <= the owner's answer" if r.get("answer_idx") == i or i in (r.get("answer_set") or []) else ""
                 out.append(f"- {o['label']}: {o['description']}{mark}")
             if r.get("answer_text"):
-                out.append(f"- his own words: {r['answer_text']}")
+                out.append(f"- the owner's own words: {r['answer_text']}")
             out.append("")
     return "\n".join(out)
 
@@ -57,11 +58,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--inp", type=Path, default=config.DATA_DIR / "rulings.jsonl")
     ap.add_argument("--n", type=int, default=25)
     ap.add_argument("--data", type=Path, default=config.DATA_DIR, help="folder holding the training files to bind the approval to")
-    ap.add_argument("--approve", metavar="NOTE", help="record HIS approval of the cleaned corpus (his words)")
+    ap.add_argument("--approve", metavar="NOTE", help="record YOUR approval of the cleaned corpus, as the owner (your own words)")
     a = ap.parse_args(argv)
     config.LOCAL_DIR.mkdir(parents=True, exist_ok=True)
     if a.approve:
-        p = config.LOCAL_DIR / "review-gate-approval.json"
+        # The same place make_sft.approved() and train_lora_amd.check() look: <data>/../local/ (fixed in 1.0.0; it
+        # used to be the home folder's local/, which those checks never read when --data pointed elsewhere).
+        p = approval_file(a.data)
         doc = write_approval(p, a.data, a.approve)   # binds the approval to the SHA-256 of the training files (U10)
         print(f"approval recorded: {p}; bound to {sorted(doc['sha256'])}")
         return 0

@@ -1,8 +1,8 @@
-"""HUMAN LLM COUNCIL, Scrutiniser benchmark and evaluation harness (BUILD step 1, 10 Nov 2026).
+"""Human LLM Council: the Scrutiniser benchmark, privacy pipeline and evaluation harness.
 
-Local only. Reads Claude Code transcripts on this machine, turns his AskUserQuestion answers into a
-multiple-choice benchmark of his own rulings, scrubs it, splits it by time, and scores predictor arms
-(baselines, a local Ollama model, retrieval, and later the LoRA trained on the AMD credit).
+Local only. Reads Claude Code transcripts on this machine, turns the owner's AskUserQuestion answers into a
+multiple-choice benchmark of their own rulings, scrubs it, splits it by time, and scores predictor arms (baselines,
+a local Ollama model, retrieval, and a trained LoRA adapter) against pre-registered gates.
 Design: ../../README.md and ../../docs/. BUILD-PLAN and Lane references in comments point at private research notes.
 """
-__version__ = "0.1.0"
+__version__ = "1.0.0"

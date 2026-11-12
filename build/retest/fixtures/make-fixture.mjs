@@ -1,4 +1,4 @@
-// Synthetic rows in the shape of build/data/test.jsonl. Nothing here comes from his transcripts.
+// Synthetic rows in the shape of build/data/test.jsonl. Nothing here comes from real transcripts.
 // Used by the tests and the headless smoke test. Deterministic.
 
 import { writeFileSync } from "node:fs";

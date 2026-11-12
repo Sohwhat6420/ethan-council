@@ -2,8 +2,8 @@
 
 - accuracy with a Wilson 95 per cent interval
 - chance level (mean of 1/number-of-options) and lift over chance
-- follow / override subsets: rows where he took the recommended option versus rows where he overrode it.
-  Override accuracy is the number that shows whether a model has learnt HIM rather than learnt "pick the recommended"
+- follow / override subsets: rows where the owner took the recommended option versus rows where they overrode it.
+  Override accuracy is the number that shows whether a model has learnt THE OWNER rather than learnt "pick the recommended"
 - exact McNemar test between two arms on the same rows
 - paired bootstrap interval for the accuracy difference
 - Brier score and expected calibration error when an arm returns probabilities
@@ -92,7 +92,7 @@ def summarise(rows: Sequence[dict], preds: Sequence[int | None], cue: Sequence[b
 
 
 # Pre-registered pass thresholds for the LoRA arm (BUILD-PLAN section 5, 10 Nov 2026), measured on the frozen
-# 375-row test split, shuffled and blind. The override floor is the amendment he accepted on 10 Nov
+# 375-row test split, shuffled and blind. The override floor is the amendment the owner accepted on 10 Nov
 # ("Accept the extra rule (Recommended)"): the gain must not come from imitating Claude's recommendation.
 GATES = {
     "baseline_arm": "A1 qwen3:4b zero-shot, 10 Nov 2026",

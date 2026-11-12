@@ -9,11 +9,13 @@ config and the review-gate approval without importing torch.
   python train/train_lora_amd.py --data local/syn-data --no-approval-check --qlora ...   # synthetic only
 
 Gates (all enforced in code):
-  - no training on real data without his signed review-gate approval whose SHA-256s match the files on disk
+  - no training on real data without the owner's signed review-gate approval whose SHA-256s match the files on disk
     (council_eval.approval); --no-approval-check works only on a folder carrying SYNTHETIC.marker;
+  - the test prompts are rendered with the prompt version and owner recorded in view.json, and every training row's
+    system message must match them, so train and test framing cannot drift apart;
   - the canary leak check is positive-controlled first: a deliberately leaky generator MUST be detected, else exit 4;
   - a canary leak in the trained adapter exits 3;
-  - the pre-registered pass thresholds (council_eval.metrics.GATES, with the override-floor amendment he accepted on
+  - the pre-registered pass thresholds (council_eval.metrics.GATES, with the override-floor amendment the owner accepted on
     10 Nov) are applied when --baseline names the A1 per-item result file.
 
 Writes: the adapter (safetensors only), test-item results in the harness's per-item format
@@ -33,9 +35,12 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 from council_eval.approval import check_approval, is_synthetic  # noqa: E402
+from council_eval.make_sft import read_view  # noqa: E402
+from council_eval.prompts import VERSIONS, system  # noqa: E402
 
 DEFAULTS = {
     "base": "Qwen/Qwen3-4B",        # Apache-2.0 (audit 10 Nov); laptop fallback Qwen/Qwen3-1.7B
+    "revision": None,               # pin a Hugging Face commit hash for a reproducible, tamper-evident base (LLM03)
     "lora_r": 16, "lora_alpha": 32, "lora_dropout": 0.05,
     "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
     "lr": 2e-4, "epochs": 2, "max_len": 1536, "batch": 8, "grad_accum": 2, "precision": "auto", "seed": 0,
@@ -57,6 +62,17 @@ def check(data: Path, require_approval: bool = True) -> dict:
         if bad:
             report["ok"] = False
             report["problems"].append(f"{len(bad)} malformed chat rows")
+        view = read_view(data)
+        if not view or view.get("prompt") not in VERSIONS or not isinstance(view.get("owner"), str):
+            report["ok"] = False
+            report["problems"].append("missing or invalid view.json: rebuild the view with make_sft")
+        else:
+            report["prompt"] = view["prompt"]
+            want = system(view["prompt"], view["owner"])
+            off = sum(1 for r in tr if not r.get("prompt") or r["prompt"][0].get("content") != want)
+            if off:
+                report["ok"] = False
+                report["problems"].append(f"{off} training rows were rendered with a different system prompt than view.json")
         chars = sum(len(m["content"]) for r in tr for m in r["prompt"] + r["completion"])
         report.update({"train_rows": len(tr), "canary_rows": sum(1 for r in tr if r.get("canary")),
                        "approx_tokens": chars // 4,
@@ -71,7 +87,7 @@ def check(data: Path, require_approval: bool = True) -> dict:
     elif not report["synthetic"]:
         report["ok"] = False
         report["problems"].append("--no-approval-check is allowed only on a folder carrying SYNTHETIC.marker; "
-                                  "real data needs his hash-bound approval")
+                                  "real data needs the owner's hash-bound approval")
     else:
         report["approval"] = "skipped: synthetic data"
     return report
@@ -95,7 +111,8 @@ def load_model_and_tok(cfg: dict):  # pragma: no cover - needs torch
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    tok = AutoTokenizer.from_pretrained(cfg["base"])
+    rev = cfg.get("revision")       # None = the repository's current main; never trust_remote_code
+    tok = AutoTokenizer.from_pretrained(cfg["base"], revision=rev)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
     gpu = torch.cuda.is_available()   # ROCm builds of PyTorch report AMD GPUs through the cuda API
@@ -107,7 +124,7 @@ def load_model_and_tok(cfg: dict):  # pragma: no cover - needs torch
         from transformers import BitsAndBytesConfig
         kw["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                                                        bnb_4bit_compute_dtype=dtype, bnb_4bit_use_double_quant=True)
-    model = AutoModelForCausalLM.from_pretrained(cfg["base"], **kw)
+    model = AutoModelForCausalLM.from_pretrained(cfg["base"], revision=rev, **kw)
     return model, tok, precision, gpu
 
 
@@ -202,10 +219,12 @@ def train_and_eval(a: argparse.Namespace, cfg: dict) -> int:  # pragma: no cover
 
     from council_eval.canary import leak_check, positive_control
     from council_eval.metrics import gates, summarise
-    from council_eval.prompts import SYSTEM, item, parse_choice, render, row_has_cue, shuffled
+    from council_eval.prompts import item, parse_choice, render, row_has_cue, shuffled
     from council_eval.run_eval import compare
 
     t_start = time.time()
+    view = read_view(a.data)          # check() has already validated it against the training rows
+    SYSTEM = system(view["prompt"], view["owner"])
     meta: dict = {"config": cfg, "data": str(a.data), "synthetic": is_synthetic(a.data), "started": datetime.now(timezone.utc).isoformat()}
     model, tok, precision, gpu = load_model_and_tok(cfg)
     cfg["precision_resolved"] = precision
@@ -269,7 +288,7 @@ def train_and_eval(a: argparse.Namespace, cfg: dict) -> int:  # pragma: no cover
     summaries, files = {}, {}
     t0 = time.time()
     for tag, test in (("-shuf", [shuffled(r, 0) for r in raw]), ("", raw)):   # same seed as run_eval --shuffle
-        preds = [parse_choice(gen([{"role": "system", "content": SYSTEM}, {"role": "user", "content": render(r, blind=True)}]),
+        preds = [parse_choice(gen([{"role": "system", "content": SYSTEM}, {"role": "user", "content": render(r, blind=True, version=view["prompt"], owner=view["owner"])}]),
                               len(r["options"])) for r in test]
         s = summarise(test, preds, cue=[row_has_cue(r) for r in test])
         s.update({"arm": name, "split": "test", "shuffle": bool(tag), "date": today, "base": cfg["base"], "qlora": cfg["qlora"]})
@@ -313,6 +332,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=Path("adapter-scrutiniser-v1"))
     ap.add_argument("--results", type=Path, default=HERE.parent / "results", help="where the per-item result files go")
     ap.add_argument("--base", default=DEFAULTS["base"])
+    ap.add_argument("--revision", default=None, help="Hugging Face commit hash to pin the base model to (recommended)")
     ap.add_argument("--epochs", type=int, default=DEFAULTS["epochs"])
     ap.add_argument("--max-steps", type=int, default=DEFAULTS["max_steps"], help="stop early (smoke tests); -1 = full epochs")
     ap.add_argument("--lr", type=float, default=DEFAULTS["lr"])
@@ -332,7 +352,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-approval-check", action="store_true", help="synthetic folders only (SYNTHETIC.marker)")
     a = ap.parse_args(argv)
-    cfg = dict(DEFAULTS, base=a.base, epochs=a.epochs, max_steps=a.max_steps, lr=a.lr, max_len=a.max_len,
+    cfg = dict(DEFAULTS, base=a.base, revision=a.revision, epochs=a.epochs, max_steps=a.max_steps, lr=a.lr, max_len=a.max_len,
                precision="fp32" if a.fp32 else a.precision, qlora=a.qlora)
     if a.qlora:
         cfg.update(QLORA_DEFAULTS)

@@ -1,9 +1,9 @@
 // Pure functions for the self-consistency retest (U2). No I/O here, so every function is unit-testable on fixtures.
 //
 // Selection: 40 held-out rulings from the frozen test split, deterministic for a given seed, stratified by whether
-// he overrode Claude's recommendation (override), followed it (follow) or no option was marked (norec).
+// the owner overrode Claude's recommendation (override), followed it (follow) or no option was marked (norec).
 // Presentation: the "(Recommended)" marker is removed and the options are shuffled per item (permutation recorded).
-// Scoring: agreement between his original choice and his retest choice, by stratum, confidence and think time,
+// Scoring: agreement between the original choice and the retest choice, by stratum, confidence and think time,
 // plus Cohen's kappa and a per-item chance-corrected agreement.
 
 // ---------- text ----------
@@ -123,7 +123,7 @@ export function selectItems(rows, { n = 40, seed = "retest-2026-11-10", quotas =
 // ---------- presentation ----------
 
 // Friendly names for project folders, e.g. [[/notes/i, "the notes folder"]]. Empty in the public
-// code; the owner passes his own at run time so no folder name is published.
+// code; the owner passes their own at run time so no folder name is published.
 export const PROJECT_NAMES = [];
 
 export function humaniseProject(project, names = PROJECT_NAMES) {
@@ -320,7 +320,7 @@ export function score(items, responseLines, meta = {}) {
   const po = rate(agreeK, nAns);
   const chanceCorrected = nAns && pe !== null && pe < 1 ? (po - pe) / (1 - pe) : null;
 
-  // Where the retest disagreed: did he move towards or away from Claude's recommendation?
+  // Where the retest disagreed: did the owner move towards or away from Claude's recommendation?
   const dis = answered.filter((x) => !x.agree && x.it.rec_idx !== null);
   const movedToRec = dis.filter((x) => x.orig === x.it.rec_idx).length;
   const movedOffRec = dis.filter((x) => x.it.answer_idx === x.it.rec_idx).length;
@@ -376,7 +376,7 @@ export function renderResults(s, { title = "Self-consistency retest: results" } 
   L.push(`| Measure | Value |`, `|---|---|`);
   L.push(`| Items | ${s.items_total} |`);
   L.push(`| Responded | ${s.responded} (answered with an option ${s.answered_with_option}, "Other" ${s.answered_other}, skipped ${s.skipped}) |`);
-  L.push(`| **Agreement with his original choice** | **${pct(s.agreement)}** (Wilson 95% ${pct(s.agreement_ci95[0])} to ${pct(s.agreement_ci95[1])}) |`);
+  L.push(`| **Agreement with the original choice** | **${pct(s.agreement)}** (Wilson 95% ${pct(s.agreement_ci95[0])} to ${pct(s.agreement_ci95[1])}) |`);
   L.push(`| Agreement reweighted to the test population | ${pct(s.agreement_reweighted_to_test_population)} |`);
   L.push(`| Cohen's kappa (pooled option positions) | ${s.cohen_kappa_pooled_positions === null ? "—" : s.cohen_kappa_pooled_positions.toFixed(3)} |`);
   L.push(`| Chance-corrected agreement (per-item uniform chance ${pct(s.expected_chance_agreement)}) | ${s.chance_corrected_agreement_per_item === null ? "—" : s.chance_corrected_agreement_per_item.toFixed(3)} |`);
@@ -390,7 +390,7 @@ export function renderResults(s, { title = "Self-consistency retest: results" } 
   for (let c = 1; c <= 5; c++) L.push(`| ${c} | ${s.by_confidence[c].n} | ${pct(s.by_confidence[c].agreement)} |`);
   L.push("", `## By think time (tertiles; cuts at ${ms(s.by_think_time.tertile_cuts_ms[0])} and ${ms(s.by_think_time.tertile_cuts_ms[1])})`, "", `| Tertile | n | Agreement |`, `|---|---|---|`);
   for (const k of ["fast", "middle", "slow"]) L.push(`| ${k} | ${s.by_think_time[k].n} | ${pct(s.by_think_time[k].agreement)} |`);
-  L.push("", `## Changing his mind`, "", `| Group | n | Agreement |`, `|---|---|---|`);
+  L.push("", `## Changing their mind`, "", `| Group | n | Agreement |`, `|---|---|---|`);
   L.push(`| Clicked more than one option before Next | ${s.changed_mind.n} | ${pct(s.changed_mind.agreement)} |`);
   L.push(`| Clicked one option only | ${s.did_not_change_mind.n} | ${pct(s.did_not_change_mind.agreement)} |`);
   const d = s.disagreements_with_a_recommendation;

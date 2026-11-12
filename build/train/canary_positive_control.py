@@ -6,7 +6,7 @@ useless, so the pass threshold is: at least 3 of 5 canaries leak in mode "contex
 
   python train/canary_positive_control.py --out local/canary-pc --results results
 
-Synthetic data only (the canaries are random hex); nothing of his is read. Prints counts, never the secrets.
+Synthetic data only (the canaries are random hex); none of the owner's data is read. Prints counts, never the secrets.
 """
 from __future__ import annotations
 
@@ -40,7 +40,9 @@ def main(argv: list[str] | None = None) -> int:
 
     import train_lora_amd as T
     from council_eval.canary import canary_rows, leak_check, make_canaries, positive_control
-    from council_eval.prompts import SYSTEM
+    from council_eval.prompts import system
+
+    SYSTEM = system()
 
     canaries = make_canaries(5)
     pc = positive_control(canaries, SYSTEM)

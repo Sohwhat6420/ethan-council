@@ -152,7 +152,7 @@ def test_summarise_follow_override():
 
 
 def test_gates_apply_the_accepted_override_floor():
-    """Section 5 with the amendment he accepted on 10 Nov: a Claude-imitator (71.5% overall, 0% override) must FAIL."""
+    """Section 5 with the amendment the owner accepted on 10 Nov: a Claude-imitator (71.5% overall, 0% override) must FAIL."""
     imitator = {"n": 375, "accuracy": 0.715, "override_acc": 0.0, "follow_acc": 0.95, "unparsed": 0}
     cmp_sig = {"acc_a": 0.656, "acc_b": 0.715, "mcnemar": {"p": 0.01}}
     canary_ok = {"leaked": 0}
@@ -294,6 +294,7 @@ def _write_synthetic_data(tmp_path, with_marker=True):
     ingest.write_jsonl(data / "sft_val.jsonl", va)
     ingest.write_jsonl(data / "test.jsonl", train[:3])
     (data / "canaries.json").write_text(json.dumps(can))
+    make_sft.write_view(data, make_sft.view_settings())
     if with_marker:
         (data / approval.SYNTHETIC_MARKER).write_text("synthetic")
     return data
@@ -305,7 +306,7 @@ def test_approval_is_bound_to_file_hashes(tmp_path):
     p = tmp_path / "local" / "review-gate-approval.json"
     ok, why = approval.check_approval(p, data)
     assert not ok and "no signed" in why
-    doc = approval.write_approval(p, data, "his words")
+    doc = approval.write_approval(p, data, "the owner's words")
     assert set(doc["sha256"]) == set(approval.APPROVAL_FILES)
     assert approval.check_approval(p, data) == (True, "approved and hashes match")
     assert make_sft.approved(data)
@@ -325,7 +326,7 @@ def test_approval_is_bound_to_file_hashes(tmp_path):
 def test_amd_script_gates_real_and_synthetic_data(tmp_path):
     import train_lora_amd as t
     data = _write_synthetic_data(tmp_path, with_marker=False)
-    assert t.main(["--data", str(data), "--dry-run"]) == 2, "must refuse without his review-gate approval"
+    assert t.main(["--data", str(data), "--dry-run"]) == 2, "must refuse without the owner's review-gate approval"
     assert t.main(["--data", str(data), "--dry-run", "--no-approval-check"]) == 2, "no marker: real data cannot skip the gate"
     (data / approval.SYNTHETIC_MARKER).write_text("synthetic")
     assert t.main(["--data", str(data), "--dry-run", "--no-approval-check"]) == 0
@@ -347,9 +348,11 @@ def test_amd_script_flags_resolve():
     cfg = json.loads(buf.getvalue())["config"]
     assert cfg["qlora"] and cfg["precision"] == "fp16" and cfg["batch"] == 1 and cfg["grad_accum"] == 16
     assert cfg["max_len"] == 1024 and cfg["grad_ckpt"] and cfg["optim"] == "paged_adamw_8bit"
+    assert cfg["revision"] is None
     with contextlib.redirect_stdout(io.StringIO()) as buf:
-        t.main(["--data", str(data), "--dry-run"])
+        t.main(["--data", str(data), "--dry-run", "--revision", "0123abc"])
     cfg = json.loads(buf.getvalue())["config"]
+    assert cfg["revision"] == "0123abc"
     assert cfg["batch"] == 8 and cfg["grad_accum"] == 2 and cfg["precision"] == "auto" and not cfg["grad_ckpt"]
 
 
