@@ -348,9 +348,11 @@ def test_amd_script_flags_resolve():
     cfg = json.loads(buf.getvalue())["config"]
     assert cfg["qlora"] and cfg["precision"] == "fp16" and cfg["batch"] == 1 and cfg["grad_accum"] == 16
     assert cfg["max_len"] == 1024 and cfg["grad_ckpt"] and cfg["optim"] == "paged_adamw_8bit"
+    assert cfg["revision"] is None
     with contextlib.redirect_stdout(io.StringIO()) as buf:
-        t.main(["--data", str(data), "--dry-run"])
+        t.main(["--data", str(data), "--dry-run", "--revision", "0123abc"])
     cfg = json.loads(buf.getvalue())["config"]
+    assert cfg["revision"] == "0123abc"
     assert cfg["batch"] == 8 and cfg["grad_accum"] == 2 and cfg["precision"] == "auto" and not cfg["grad_ckpt"]
 
 

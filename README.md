@@ -4,7 +4,7 @@
 reaches you: the made-up claims, the hallucinations and the subpar results.**
 
 [![test](https://github.com/Sohwhat6420/human-llm-council/actions/workflows/test.yml/badge.svg)](https://github.com/Sohwhat6420/human-llm-council/actions/workflows/test.yml)
-[![Status: preview](https://img.shields.io/badge/status-preview-orange)](#status-11-november-2026)
+[![Version 1.0.0](https://img.shields.io/badge/version-1.0.0-2f6f66)](CHANGELOG.md)
 [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
 
 <picture>
@@ -18,8 +18,8 @@ reject. The case it is being built for happened on 11 November 2026: an agent sh
 newer version had already superseded. A council that knows I always reject stale work would have caught it and sent
 it back before it reached me.
 
-Each person trains their own and names it after themselves: *&lt;Your name&gt; Council*. Mine is **Ethan Council**,
-the reference instance, and every number on this page comes from it.
+Each person runs their own, trained on their own history. Every number on this page comes from the reference
+instance: mine, measured on my own decisions.
 
 - **It is scored on when you say no.** I take my agents' recommended option 81.7% of the time, so copying them looks
   good overall and gets every override wrong (the chart above). The benchmark hides the recommendation, shuffles the
@@ -31,18 +31,75 @@ the reference instance, and every number on this page comes from it.
   leaked; its positive control caught 5 of 5).
 
 > [!NOTE]
-> **This is a preview.** The benchmark is built and measured. No model has been trained on real data yet, and there
-> is nothing to install. The [status table](#status-11-november-2026) says exactly what exists.
+> **Version 1.0.0 is the toolkit, not a trained model.** The benchmark, the privacy pipeline, the evaluation
+> harness, the retest and the training script are stable and installable. No model has been trained on real data
+> yet, so no adapter ships; `council ask` uses an untrained local model until one passes the gates. The
+> [status table](#status-12-november-2026-v100) says exactly what exists.
 
-## Quick start
+## Install and run
 
-The tests run on synthetic transcripts, so they need none of your data:
+Python 3.10 or newer. The harness is pure standard library, so the install pulls in nothing but `pytest` for the
+tests. Everything below runs on synthetic transcripts and needs none of your data.
 
 ```bash
-git clone https://github.com/Sohwhat6420/human-llm-council && cd human-llm-council/build
-python -m pip install pytest && python -m pytest -q tests     # 21 tests
-node --test retest/test/retest.test.mjs                       # 14 tests for the retest tool (Node 18+)
+git clone https://github.com/Sohwhat6420/human-llm-council
+cd human-llm-council
+python -m venv .venv
+source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -e ".[test]"
+council demo                       # the whole pipeline on synthetic transcripts, about a second
 ```
+
+The demo ingests synthetic Claude Code transcripts (redacting the planted contact details, pseudonymising a name,
+dropping a row about minors), splits them by time, scores the baselines blind and shuffled, builds the training view
+with canaries, walks the SHA-256-bound review gate, and shows the gates failing an agent-imitator on the override
+floor. Then the tests:
+
+```bash
+python -m pytest                              # 53 tests
+node --test build/retest/test/retest.test.mjs  # 14 tests for the retest tool (Node 20+)
+```
+
+`council` with no arguments lists every command; `council <command> --help` explains one.
+
+## Use it on your own history
+
+Everything stays on your machine. Data, settings and results go in `build/data/`, `build/local/` and
+`build/results/`, all git-ignored (set `COUNCIL_HOME` to put them elsewhere).
+
+1. **Tell it who you are** (optional): create the folder `build/local/` (git ignores it) and put
+   `{"owner": "Sam"}` in `build/local/council.json`. Add the people who appear
+   in your sessions to `build/local/aliases.json` as `{"Their name": "PEER"}` (roles: PEER, AUTHORITY, FAMILY,
+   PARTNER, OTHER) and any extra folders or patterns to drop to `build/local/exclusions.json`
+   ([privacy pipeline](docs/PRIVACY-PIPELINE.md#what-the-owner-configures-locally-never-committed)).
+2. **Build your benchmark** from your Claude Code transcripts (`~/.claude/projects`). Only counts are printed:
+   ```bash
+   council ingest
+   council split
+   council eval --arms recommended,first,random --shuffle
+   ```
+3. **Score a local model** with [Ollama](https://ollama.com) on this machine (`ollama pull qwen3:4b`). The harness
+   refuses any model host that is not loopback:
+   ```bash
+   council eval --arms llm --model qwen3:4b --shuffle
+   ```
+4. **Build the training view, read the review sheet, then approve it** in your own words. Rebuilding any file
+   afterwards voids the approval:
+   ```bash
+   council sft
+   council review
+   council review --approve "I read the sheet on <date>; nothing private survived"
+   ```
+5. **Train** on a CUDA or ROCm GPU (`python -m pip install -e ".[train]"`, after the right `torch` for your GPU),
+   then gate the adapter against your baseline's per-item file:
+   ```bash
+   council train --data build/data --base Qwen/Qwen3-1.7B --qlora --out build/local/adapter-v1 --baseline build/results/<A1 file>.json
+   ```
+6. **Ask the council** about a question an agent is asking you (`{"question": "...", "options": ["...", "..."]}` or
+   AskUserQuestion's own `{"questions": [...]}`). It prints the question with its suggestion marked; you decide:
+   ```bash
+   council ask question.json --model qwen3:4b
+   ```
 
 ## How it works
 
@@ -77,7 +134,7 @@ GPU for about an hour, and only if I approve uploading the cleaned, pseudonymise
 The first demo is the Scrutiniser, because it has a clean target: predict my answer to a question an agent
 actually asked me, and score it against what I really chose.
 
-## Status (11 November 2026)
+## Status (12 November 2026, v1.0.0)
 
 Measured or built only. Nothing in this table is a projection.
 
@@ -90,8 +147,11 @@ Measured or built only. Nothing in this table is a projection.
 | Laptop training test | **Run on synthetic data only.** Qwen3-1.7B, 4-bit QLoRA on an RTX 3060 Laptop GPU (6 GB): exit 0, 27.5 min of training, peak 3.34 GB VRAM allocated. Canary audit: 0 of 5 leaked; its positive control caught 5 of 5. | [`build/train/`](build/train/) |
 | Scrutiniser LoRA on real data | **Not started.** It waits for my own review-gate approval of the cleaned training files. | |
 | Self-consistency retest | Tool **built** (a local web page that re-asks 40 held-out questions, to measure how often I agree with myself). Not taken yet. | [`build/retest/`](build/retest/) |
+| Install, CLI and demo | **Built and tested in CI** on Python 3.10 to 3.13: `pip install -e .`, the `council` command, and `council demo` (the whole pipeline on synthetic transcripts). | [`build/council_eval/cli.py`](build/council_eval/cli.py) |
+| Prompt-injection hardening | **Built and tested.** Prompt v1 (the default) fences untrusted transcript text; the model host must be loopback. The published baselines used v0, which is kept byte-identical so they reproduce. | [SECURITY.md](SECURITY.md) |
 | Designer, Coder, Orchestrator | Design only. | |
 | Nightly reflect, sleep, dream, update | Design only. | |
+| Suggestion mode (`council ask`) | **Built.** Shows an agent's question with the council's pick marked; you decide. Uses an untrained base model until an adapter passes the gates. | [`build/council_eval/ask.py`](build/council_eval/ask.py) |
 | Auto-answer mode | Design only. It will always show the agent's question with the council's pick preselected; it never answers silently. | [docs/PRIOR-ART.md](docs/PRIOR-ART.md) |
 
 ### Held-out results (n = 375, options shuffled, recommendation hidden)
@@ -116,16 +176,18 @@ drop when I follow the recommendation, at most 1% unparsed replies, and zero can
 
 | Path | What it is |
 | --- | --- |
-| [`build/council_eval/`](build/council_eval/) | The benchmark harness, pure Python standard library: ingest of agent decisions from local transcripts, the scrubber, the time split and freeze, blind and shuffled prompts, baselines, a local Ollama predictor, metrics (Wilson intervals, exact McNemar, paired bootstrap, Brier, ECE, follow and override accuracy) and the pre-registered gates, the training view with canaries, the review sheet and the SHA-256-bound approval. |
+| [`build/council_eval/`](build/council_eval/) | The `council` command and the benchmark harness, pure Python standard library: ingest of agent decisions from local transcripts, the scrubber, the time split and freeze, blind and shuffled prompts, baselines, a local Ollama predictor, metrics (Wilson intervals, exact McNemar, paired bootstrap, Brier, ECE, follow and override accuracy) and the pre-registered gates, the training view with canaries, the review sheet and the SHA-256-bound approval, `council demo` and `council ask`. |
 | [`build/train/`](build/train/) | The LoRA training script (TRL, completion-only loss, QLoRA on small GPUs). It exits without a valid approval and discards an adapter that leaks a canary. Also the canary positive control and a row-length check. |
-| [`build/tests/`](build/tests/) | 21 pytest tests on synthetic transcripts. |
+| [`build/tests/`](build/tests/) | 53 pytest tests on synthetic transcripts, including the core flow end to end and the prompt-injection cases. |
 | [`build/retest/`](build/retest/) | The self-consistency retest: a loopback-only web page and scorer, with 14 tests and a headless smoke test on synthetic fixtures. |
 | [`docs/PRIVACY-PIPELINE.md`](docs/PRIVACY-PIPELINE.md) | The privacy design: hard rules, the stages, consent. |
 | [`docs/PRIOR-ART.md`](docs/PRIOR-ART.md) | Prior art and the defensive publication. |
+| [`SECURITY.md`](SECURITY.md) | How to report a vulnerability, and the OWASP Top 10 for LLM Applications map. |
+| [`CHANGELOG.md`](CHANGELOG.md) | What changed in each release. |
 
 **Not in this repository, by design:** any data, transcript, export, corpus, review sheet, adapter or
-weights; the research notes; and every name other than mine. The code reads its private settings (alias
-table, HMAC key, extra exclusions) from `build/local/`, which git ignores.
+weights; the research notes; and every name other than mine. The code reads its private settings (owner name,
+alias table, HMAC key, extra exclusions) from `build/local/`, which git ignores.
 
 ## Prior art / defensive publication (11 November 2026)
 
@@ -149,7 +211,9 @@ application on any of it.
 - **Training is gated twice:** before (a signed approval bound to the files' SHA-256s) and after (a canary
   memorisation audit with a positive control).
 - **Transcripts are untrusted text** (OWASP LLM01): the harness parses them as data and never executes or
-  follows anything in them. The retest server listens on loopback only.
+  follows anything in them. Prompt v1 fences them so a question cannot pose as an instruction, the model can only
+  ever pick one of the offered options, and the model host must be this machine. The retest server listens on
+  loopback only. The full OWASP Top 10 for LLM Applications map is in [SECURITY.md](SECURITY.md).
 
 ## Licence
 

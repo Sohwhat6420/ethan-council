@@ -40,6 +40,7 @@ from council_eval.prompts import VERSIONS, system  # noqa: E402
 
 DEFAULTS = {
     "base": "Qwen/Qwen3-4B",        # Apache-2.0 (audit 10 Nov); laptop fallback Qwen/Qwen3-1.7B
+    "revision": None,               # pin a Hugging Face commit hash for a reproducible, tamper-evident base (LLM03)
     "lora_r": 16, "lora_alpha": 32, "lora_dropout": 0.05,
     "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
     "lr": 2e-4, "epochs": 2, "max_len": 1536, "batch": 8, "grad_accum": 2, "precision": "auto", "seed": 0,
@@ -110,7 +111,8 @@ def load_model_and_tok(cfg: dict):  # pragma: no cover - needs torch
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    tok = AutoTokenizer.from_pretrained(cfg["base"])
+    rev = cfg.get("revision")       # None = the repository's current main; never trust_remote_code
+    tok = AutoTokenizer.from_pretrained(cfg["base"], revision=rev)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
     gpu = torch.cuda.is_available()   # ROCm builds of PyTorch report AMD GPUs through the cuda API
@@ -122,7 +124,7 @@ def load_model_and_tok(cfg: dict):  # pragma: no cover - needs torch
         from transformers import BitsAndBytesConfig
         kw["quantization_config"] = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4",
                                                        bnb_4bit_compute_dtype=dtype, bnb_4bit_use_double_quant=True)
-    model = AutoModelForCausalLM.from_pretrained(cfg["base"], **kw)
+    model = AutoModelForCausalLM.from_pretrained(cfg["base"], revision=rev, **kw)
     return model, tok, precision, gpu
 
 
@@ -330,6 +332,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", type=Path, default=Path("adapter-scrutiniser-v1"))
     ap.add_argument("--results", type=Path, default=HERE.parent / "results", help="where the per-item result files go")
     ap.add_argument("--base", default=DEFAULTS["base"])
+    ap.add_argument("--revision", default=None, help="Hugging Face commit hash to pin the base model to (recommended)")
     ap.add_argument("--epochs", type=int, default=DEFAULTS["epochs"])
     ap.add_argument("--max-steps", type=int, default=DEFAULTS["max_steps"], help="stop early (smoke tests); -1 = full epochs")
     ap.add_argument("--lr", type=float, default=DEFAULTS["lr"])
@@ -349,7 +352,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-approval-check", action="store_true", help="synthetic folders only (SYNTHETIC.marker)")
     a = ap.parse_args(argv)
-    cfg = dict(DEFAULTS, base=a.base, epochs=a.epochs, max_steps=a.max_steps, lr=a.lr, max_len=a.max_len,
+    cfg = dict(DEFAULTS, base=a.base, revision=a.revision, epochs=a.epochs, max_steps=a.max_steps, lr=a.lr, max_len=a.max_len,
                precision="fp32" if a.fp32 else a.precision, qlora=a.qlora)
     if a.qlora:
         cfg.update(QLORA_DEFAULTS)

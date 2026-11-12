@@ -14,7 +14,8 @@ __pycache__/
 .pytest_cache/
 node_modules/
 
-# Packaging output
+# Packaging output (setuptools builds in build/, which is also this repo's source folder)
 *.egg-info/
 dist/
-build/build/
+build/lib/
+build/bdist.*/

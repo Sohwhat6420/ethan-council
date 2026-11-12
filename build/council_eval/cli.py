@@ -64,7 +64,7 @@ def usage() -> str:
     return "\n".join(lines)
 
 
-def main(argv: list[str] | None = None) -> int:
+def _main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv or argv[0] in ("-h", "--help", "help"):
         print(usage())
@@ -83,6 +83,15 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     mod = importlib.import_module(COMMANDS[cmd][0])
     return int(mod.main(rest) or 0)
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        return _main(argv)
+    except BrokenPipeError:   # `council demo | head`: the reader left; exit quietly like other command-line tools
+        import os
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        return 141
 
 
 if __name__ == "__main__":

@@ -4,22 +4,67 @@ on:
   pull_request:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  test:
+  python:
+    name: Python ${{ matrix.python }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
+      - name: Install (editable, with the test extra)
+        run: python -m pip install -e ".[test]"
+      - name: Tests (synthetic transcripts only)
+        run: python -m pytest -q
+      - name: Demo (the whole pipeline on synthetic transcripts)
+        run: council demo --out "$RUNNER_TEMP/demo"
+
+  fresh-install:
+    name: Install from a fresh clone, run outside it
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Regular install, then run from another folder
+        run: |
+          python -m pip install .
+          cd "$RUNNER_TEMP"
+          council --version
+          council info
+          council info | python -c "import json, sys; h = json.load(sys.stdin)['home']; assert h.endswith('.human-llm-council'), h"
+          council demo --out "$RUNNER_TEMP/demo" | tail -n 5
+
+  retest:
+    name: Retest tool (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
-      - name: Python tests (synthetic transcripts only)
-        working-directory: build
-        run: |
-          python -m pip install pytest
-          python -m pytest -q -p no:cacheprovider tests
+          node-version: ${{ matrix.node }}
       - name: Retest tool tests (synthetic fixtures only)
         working-directory: build
         run: node --test retest/test/retest.test.mjs
