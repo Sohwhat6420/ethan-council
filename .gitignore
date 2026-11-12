@@ -13,3 +13,8 @@ results/
 __pycache__/
 .pytest_cache/
 node_modules/
+
+# Packaging output
+*.egg-info/
+dist/
+build/build/

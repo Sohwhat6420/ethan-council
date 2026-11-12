@@ -40,7 +40,9 @@ def main(argv: list[str] | None = None) -> int:
 
     import train_lora_amd as T
     from council_eval.canary import canary_rows, leak_check, make_canaries, positive_control
-    from council_eval.prompts import SYSTEM
+    from council_eval.prompts import system
+
+    SYSTEM = system()
 
     canaries = make_canaries(5)
     pc = positive_control(canaries, SYSTEM)

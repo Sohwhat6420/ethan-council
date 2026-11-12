@@ -294,6 +294,7 @@ def _write_synthetic_data(tmp_path, with_marker=True):
     ingest.write_jsonl(data / "sft_val.jsonl", va)
     ingest.write_jsonl(data / "test.jsonl", train[:3])
     (data / "canaries.json").write_text(json.dumps(can))
+    make_sft.write_view(data, make_sft.view_settings())
     if with_marker:
         (data / approval.SYNTHETIC_MARKER).write_text("synthetic")
     return data

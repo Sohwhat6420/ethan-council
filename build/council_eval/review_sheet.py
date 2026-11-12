@@ -19,6 +19,7 @@ from pathlib import Path
 from . import config
 from .approval import APPROVAL_FILES, hashes, write_approval
 from .ingest import read_jsonl
+from .make_sft import approval_file
 
 
 def sheet(rows: list[dict], n: int = 25, seed: int = 0, data_dir: Path | None = None) -> str:
@@ -61,7 +62,9 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
     config.LOCAL_DIR.mkdir(parents=True, exist_ok=True)
     if a.approve:
-        p = config.LOCAL_DIR / "review-gate-approval.json"
+        # The same place make_sft.approved() and train_lora_amd.check() look: <data>/../local/ (fixed in 1.0.0; it
+        # used to be the home folder's local/, which those checks never read when --data pointed elsewhere).
+        p = approval_file(a.data)
         doc = write_approval(p, a.data, a.approve)   # binds the approval to the SHA-256 of the training files (U10)
         print(f"approval recorded: {p}; bound to {sorted(doc['sha256'])}")
         return 0
