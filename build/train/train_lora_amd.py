@@ -9,11 +9,11 @@ config and the review-gate approval without importing torch.
   python train/train_lora_amd.py --data local/syn-data --no-approval-check --qlora ...   # synthetic only
 
 Gates (all enforced in code):
-  - no training on real data without his signed review-gate approval whose SHA-256s match the files on disk
+  - no training on real data without the owner's signed review-gate approval whose SHA-256s match the files on disk
     (council_eval.approval); --no-approval-check works only on a folder carrying SYNTHETIC.marker;
   - the canary leak check is positive-controlled first: a deliberately leaky generator MUST be detected, else exit 4;
   - a canary leak in the trained adapter exits 3;
-  - the pre-registered pass thresholds (council_eval.metrics.GATES, with the override-floor amendment he accepted on
+  - the pre-registered pass thresholds (council_eval.metrics.GATES, with the override-floor amendment the owner accepted on
     10 Nov) are applied when --baseline names the A1 per-item result file.
 
 Writes: the adapter (safetensors only), test-item results in the harness's per-item format
@@ -71,7 +71,7 @@ def check(data: Path, require_approval: bool = True) -> dict:
     elif not report["synthetic"]:
         report["ok"] = False
         report["problems"].append("--no-approval-check is allowed only on a folder carrying SYNTHETIC.marker; "
-                                  "real data needs his hash-bound approval")
+                                  "real data needs the owner's hash-bound approval")
     else:
         report["approval"] = "skipped: synthetic data"
     return report

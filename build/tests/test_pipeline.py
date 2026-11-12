@@ -152,7 +152,7 @@ def test_summarise_follow_override():
 
 
 def test_gates_apply_the_accepted_override_floor():
-    """Section 5 with the amendment he accepted on 10 Nov: a Claude-imitator (71.5% overall, 0% override) must FAIL."""
+    """Section 5 with the amendment the owner accepted on 10 Nov: a Claude-imitator (71.5% overall, 0% override) must FAIL."""
     imitator = {"n": 375, "accuracy": 0.715, "override_acc": 0.0, "follow_acc": 0.95, "unparsed": 0}
     cmp_sig = {"acc_a": 0.656, "acc_b": 0.715, "mcnemar": {"p": 0.01}}
     canary_ok = {"leaked": 0}
@@ -305,7 +305,7 @@ def test_approval_is_bound_to_file_hashes(tmp_path):
     p = tmp_path / "local" / "review-gate-approval.json"
     ok, why = approval.check_approval(p, data)
     assert not ok and "no signed" in why
-    doc = approval.write_approval(p, data, "his words")
+    doc = approval.write_approval(p, data, "the owner's words")
     assert set(doc["sha256"]) == set(approval.APPROVAL_FILES)
     assert approval.check_approval(p, data) == (True, "approved and hashes match")
     assert make_sft.approved(data)
@@ -325,7 +325,7 @@ def test_approval_is_bound_to_file_hashes(tmp_path):
 def test_amd_script_gates_real_and_synthetic_data(tmp_path):
     import train_lora_amd as t
     data = _write_synthetic_data(tmp_path, with_marker=False)
-    assert t.main(["--data", str(data), "--dry-run"]) == 2, "must refuse without his review-gate approval"
+    assert t.main(["--data", str(data), "--dry-run"]) == 2, "must refuse without the owner's review-gate approval"
     assert t.main(["--data", str(data), "--dry-run", "--no-approval-check"]) == 2, "no marker: real data cannot skip the gate"
     (data / approval.SYNTHETIC_MARKER).write_text("synthetic")
     assert t.main(["--data", str(data), "--dry-run", "--no-approval-check"]) == 0

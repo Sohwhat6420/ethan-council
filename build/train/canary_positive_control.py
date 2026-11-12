@@ -6,7 +6,7 @@ useless, so the pass threshold is: at least 3 of 5 canaries leak in mode "contex
 
   python train/canary_positive_control.py --out local/canary-pc --results results
 
-Synthetic data only (the canaries are random hex); nothing of his is read. Prints counts, never the secrets.
+Synthetic data only (the canaries are random hex); none of the owner's data is read. Prints counts, never the secrets.
 """
 from __future__ import annotations
 

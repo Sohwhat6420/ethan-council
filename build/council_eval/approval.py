@@ -1,7 +1,7 @@
 """Stage 5 review-gate approval, bound to the exact training files by SHA-256 (BUILD-PLAN U10).
 
 The approval file records the hash of every file that would be trained on or uploaded. If any of them is rebuilt
-after he approved, the hashes differ and both make_sft.approved() and train_lora_amd.check() refuse. A path alone
+after the owner approved, the hashes differ and both make_sft.approved() and train_lora_amd.check() refuse. A path alone
 (the old format) is no longer accepted.
 
 Synthetic data (council_eval.synthetic) carries a SYNTHETIC.marker file; only such a folder may skip the gate.

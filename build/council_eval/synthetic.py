@@ -4,7 +4,7 @@
   python -m council_eval.synthetic --out build/local/syn-data --n 1500 --realistic   # same SHAPE as the real view
 
 The folder gets a SYNTHETIC.marker file; only a folder with that marker may skip the review-gate approval
-(train_lora_amd.py --no-approval-check). Real data can never be trained without his hash-bound approval.
+(train_lora_amd.py --no-approval-check). Real data can never be trained without the owner's hash-bound approval.
 
 --realistic draws row lengths from the measured distribution of the real training view (counts only, 10 Nov:
 mean about 225 tokens, 1,536 max_len) so a pipeline test on it records a VRAM peak and s/step that mean something.

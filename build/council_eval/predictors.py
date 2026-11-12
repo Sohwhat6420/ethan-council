@@ -1,8 +1,8 @@
 """Predictor arms. Each takes a row and returns (choice index or None, probabilities or None).
 
 A0 baselines: recommended, first, random, position prior (learnt from train).
-A1 local base model, zero-shot (Ollama on this laptop; never a cloud API: the rows are his data).
-A2 local base model plus retrieval of his k most similar past rulings (TF-IDF, pure Python, from train only).
+A1 local base model, zero-shot (Ollama on this laptop; never a cloud API: the rows are the owner's data).
+A2 local base model plus retrieval of the owner's k most similar past rulings (TF-IDF, pure Python, from train only).
 A4 the LoRA arm runs on the AMD box via train/train_lora_amd.py and writes the same per-item file format.
 """
 from __future__ import annotations

@@ -2,7 +2,7 @@
 
 The last 10 per cent of train by time becomes the validation file (early stopping on the AMD run).
 Canary rows are mixed into the training file (not validation) for the stage 7 audit.
-Output files stay in build/data/ (git-ignored) and are uploaded to the AMD box only after his review-gate approval:
+Output files stay in build/data/ (git-ignored) and are uploaded to the AMD box only after the owner's review-gate approval:
 see the approval check below.
 """
 from __future__ import annotations
@@ -50,7 +50,7 @@ def approval_file(data_dir: Path) -> Path:
 
 
 def approved(data_dir: Path = config.DATA_DIR) -> bool:
-    """True only when his approval exists AND its SHA-256s match the files now on disk (BUILD-PLAN U10)."""
+    """True only when the owner's approval exists AND its SHA-256s match the files now on disk (BUILD-PLAN U10)."""
     return check_approval(approval_file(data_dir), data_dir)[0]
 
 
@@ -66,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     ok, why = check_approval(approval_file(a.data), a.data)
     print(json.dumps({"sft_train": len(tr), "sft_val": len(va), "canaries": len(can),
                       "review_gate_approved": ok, "approval_state": why,
-                      "note": "do not train or upload until review_gate_approved is true (his signed, hash-bound approval)"}))
+                      "note": "do not train or upload until review_gate_approved is true (the owner's signed, hash-bound approval)"}))
     return 0
 
 

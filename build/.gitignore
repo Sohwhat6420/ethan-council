@@ -1,4 +1,4 @@
-# Everything derived from the owner's transcripts stays on his machine and out of git
+# Everything derived from the owner's transcripts stays on their machine and out of git
 # (docs/PRIVACY-PIPELINE.md, rules 1 and 3).
 data/
 local/

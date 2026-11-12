@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Headless smoke test on FIXTURE data (never his rows): starts a server on an ephemeral port over a scratch data dir,
+// Headless smoke test on FIXTURE data (never the owner's rows): starts a server on an ephemeral port over a scratch data dir,
 // renders the intro and the first question with Playwright's bundled Chromium (explicit path under
 // %LOCALAPPDATA%\ms-playwright; never an installed browser or profile), in light and dark, at phone and laptop widths.
 // Screenshots go to --out (default: the OS temp dir). Prints pass/fail lines only.

@@ -246,7 +246,7 @@ test("scorer on fixtures: agreement, strata, confidence, think time, kappa, rewe
   assert.ok(s.dwell_ratio_chosen_vs_others.n >= 1 && s.dwell_ratio_chosen_vs_others.median > 1);
 
   const md = renderResults(s);
-  assert.ok(md.includes("Agreement with his original choice") && md.includes("| override |"));
+  assert.ok(md.includes("Agreement with the original choice") && md.includes("| override |"));
   assert.ok(!/case \d+/.test(md), "RESULTS.md must not contain question text");
 });
 

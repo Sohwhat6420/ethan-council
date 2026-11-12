@@ -1,9 +1,9 @@
 """Time-based split, de-duplication and the self-agreement (test-retest) set.
 
 - Train = older rows, test = newest rows (default last 20 per cent by time). A time split, never random: the paper's
-  claim is "predicts his NEXT rulings", and preferences drift over time, so a random split would be flattering.
+  claim is "predicts the owner's NEXT rulings", and preferences drift over time, so a random split would be flattering.
 - Duplicates: the same question with the same option labels. The first copy stays; later copies answered on a
-  different day become retest pairs, and his agreement with himself on those pairs is the benchmark's ceiling.
+  different day become retest pairs, and the owner's agreement with themselves on those pairs is the benchmark's ceiling.
 - Leakage guard: a test row whose normalised question also appears in train is removed from test.
 """
 from __future__ import annotations
