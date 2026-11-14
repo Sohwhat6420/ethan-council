@@ -141,17 +141,12 @@ one option. (Those sessions ran on Anthropic's cloud models. Everything the coun
 afterwards runs on my laptop.) A model learns from the earlier ones and is tested on the newest 375, so it has to
 predict choices it has never seen.
 
-The test is blind. Agents often mark one option as "recommended", and I usually take it. The benchmark hides
-that mark and shuffles the options, so a model cannot score by spotting the agent's pick.
+The test is fair. Agents often mark one option as "recommended". The benchmark hides that mark and shuffles the
+options, so a model has to judge the options themselves.
 
 Nothing is trained yet. The best model so far, qwen3:4b run as it comes on a laptop, picked what I picked about
-two times in three. Picking at random gets about two in five. On the decisions where I did not take the agent's
-suggestion it did much worse: it got most of those wrong.
-
-Those decisions matter most. A rule that always agrees with the agent looks good on paper, because I agree with
-the agent most of the time. But it was wrong every single time I disagreed, which is exactly when a filter
-matters. So a trained model has to pass twice: on all the test questions, and on the ones where I went against
-the agent. Closing that gap is what training is for.
+two times in three. Picking at random gets about two in five. A trained model has to do clearly better than
+that.
 
 More detail, and the pass mark, are in [docs/BENCHMARK.md](docs/BENCHMARK.md).
 
@@ -209,11 +204,9 @@ This builds on earlier work, and says so: agents that simulate individual people
 learns a user's permission decisions (Wu et al. 2025), and patents from Microsoft and Meta on predicting user
 responses. A model of one person that answers for them is not new.
 
-To my knowledge, no public benchmark scores a model of a user on the times the user went against the agent. Two
-methods are published openly here, dated 11 November 2026, so they stay free for anyone to use: **training and
-testing with the agent's recommendation hidden**, and **a check that the model gets right the times I went
-against the agent before it is allowed to answer for me**. Full descriptions and citations:
-[docs/PRIOR-ART.md](docs/PRIOR-ART.md). There is no patent or patent application on any of it.
+Two methods are published openly here, dated 11 November 2026, so they stay free for anyone to use: **how the
+benchmark is kept fair**, and **the checks a trained model must pass before it is allowed to answer for me**.
+Full descriptions and citations: [docs/PRIOR-ART.md](docs/PRIOR-ART.md). There is no patent or patent application on any of it.
 
 ## Licence
 

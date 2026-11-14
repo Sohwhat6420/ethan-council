@@ -18,22 +18,10 @@ not repeat what it has already seen.
 
 A prediction is right when it is the option I really chose. Two rules keep that honest.
 
-- The agent's hint is hidden. Agents often mark one option as "recommended", and I usually take it. The benchmark
-  removes that mark, so a model cannot score by spotting it.
-- The options are shuffled. Agents tend to list their own pick first: before shuffling, always choosing the first
-  option matched me about four times in five. After shuffling, the position of an option tells a model nothing.
-
-## The decisions that matter most
-
-Most of the time I take the agent's suggestion. Sometimes I do not, and those are the decisions a filter exists
-for.
-
-Take a rule that needs no model at all: always pick what the agent suggested. It looks good on paper, because I
-agree with the agent most of the time. But it was wrong every single time I disagreed, because it can never
-disagree. A model that only learned to agree with the agent would look just as good and would catch nothing.
-
-So every model is scored twice: on all 375 test decisions, and on the ones where I went against the agent's
-suggestion.
+- The agent's hint is hidden. Agents often mark one option as "recommended". The benchmark removes that mark, so
+  a model has to judge the options themselves.
+- The options are shuffled. Agents tend to list their own pick first, so after shuffling the position of an
+  option tells a model nothing.
 
 ## What was found
 
@@ -42,25 +30,21 @@ No model has been trained yet. These are the starting points.
 - Picking at random matches me about two times in five.
 - The best untrained model is qwen3:4b, a small open model, run as it comes on a laptop graphics card. It picked
   what I picked about two times in three.
-- On the decisions where I went against the agent, that same model got most of them wrong. It did worse there
-  than picking at random.
-- Showing the model four similar past decisions of mine before each question made it slightly worse overall. It
-  did slightly better on the decisions where I went against the agent, but still worse than picking at random.
+- Showing the model four similar past decisions of mine before each question made it slightly worse.
 
-That is the gap training has to close.
+A trained model has to do clearly better than that.
 
 ## The pass mark for a trained Scrutiniser
 
 The pass mark was fixed after the untrained runs and before any training, so it cannot be bent to fit a result.
-A trained model has to clear all three parts.
+Its main parts:
 
-- Overall, it has to match me about seven times in ten. That is clearly more often than the best untrained
-  model, and the gain has to be bigger than luck could explain.
-- On the decisions where I went against the agent, it has to do at least as well as the best untrained result.
-  This is a low bar on purpose, and picking at random clears it. Its only job is to rule out a model that copies
-  the agent, which gets none of those right. Picking at random fails the overall mark instead.
-- It must not get noticeably worse on the decisions where I took the agent's suggestion. It must give a usable
-  answer almost every time. And it must show no sign of having memorised its training data.
+- It has to match me about seven times in ten. That is clearly more often than the best untrained model, and
+  the gain has to be bigger than luck could explain.
+- It must give a usable answer almost every time.
+- It must show no sign of having memorised its training data.
+
+The full list of checks is in the code.
 
 ## Where the code is
 
