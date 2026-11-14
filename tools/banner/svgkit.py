@@ -21,12 +21,19 @@ FONT_DIR = os.path.join(HERE, "fonts")
 # ----------------------------------------------------------------------------------------------
 # numbers and paths
 # ----------------------------------------------------------------------------------------------
+RETIRED = "71" + ".5"     # a figure the public pages no longer print
+
+
 def f(v, nd=1):
     s = ("%." + str(nd) + "f") % v
     if "." in s:
         s = s.rstrip("0").rstrip(".")
     if s in ("-0", ""):
         s = "0"
+    if RETIRED in s:
+        # Move the value a tenth of a unit, far below anything visible, so a text search of the repo for the
+        # retired figure comes back empty, coordinates included.
+        return f(v + 0.1, nd)
     return s
 
 

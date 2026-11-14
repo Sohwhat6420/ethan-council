@@ -2,44 +2,54 @@
   <source media="(max-width: 767px) and (prefers-color-scheme: dark)" srcset="assets/banner-dark-m.svg">
   <source media="(max-width: 767px)" srcset="assets/banner-light-m.svg">
   <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
-  <img src="assets/banner-light.svg" width="100%" alt="Human LLM Council. An LLM that thinks and decides like one person, and runs on consumer-grade hardware. Four members sit round a table, the Scrutiniser first, then the planned Designer, Coder and Orchestrator; each passes its suggestion to the person at the head of the table, who decides. Preview: no model is trained on real data yet.">
+  <img src="assets/banner-light.svg" width="100%" alt="Human LLM Council. A personalised human you run on your own hardware: it catches the slop AI agents hand you and sends it back with your feedback. The picture shows the design. Work from AI agents queues on the left. The Council reads each piece first. A stale README preview is ringed in red, stamped 'sent back' and returned with the note 'this is the old version'; a made-up claim goes back with 'where is the source for that number?'; a diff that skips the tests goes back with 'I already said this yesterday'. Only work that passes reaches the person on the right. Preview: no model is trained yet.">
 </picture>
 
+**A personalised human you run on your own hardware, built to intercept, audit and filter AI output before it
+reaches you: the made-up claims, the hallucinations and the subpar results.**
+
 [![test](https://github.com/Sohwhat6420/human-llm-council/actions/workflows/test.yml/badge.svg)](https://github.com/Sohwhat6420/human-llm-council/actions/workflows/test.yml)
-[![Status: preview](https://img.shields.io/badge/status-preview-orange)](#status-11-november-2026)
+[![Status: preview](https://img.shields.io/badge/status-preview-orange)](#what-exists-today)
 [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
 
-**The goal: an LLM that thinks and decides the way one person does, small enough to run on that person's own
-laptop.**
-
-**Why a laptop.** To learn how someone decides, a model has to train on their private history: the choices they
-make, and later their messages and notes. If that needs a data centre, the history has to leave home. On
-consumer-grade hardware it need not, and anyone can train their own. So far the laptop training test, on synthetic
-data, fitted a 1.7-billion-parameter Qwen3 in 3.34 GB of graphics memory on a 6 GB laptop GPU, the kind in a
-mid-range gaming laptop. The planned 4-billion-parameter model has not been measured on that laptop yet, and the
-first real run may rent a GPU for about an hour, only with my approval.
-
-**What it is for.** AI agents now produce more than one person can check. The aim is a council that sits between
-them and me and flags what I would reject before it reaches me: on 11 November 2026 an agent showed me a preview of
-a README that a newer version had already replaced, and a council that knows I always reject stale work would have
-sent it back. The first member starts with a narrower job that can be measured: predict which option I pick when
-an agent asks me to choose.
-
-Each person trains their own and names it after themselves: *&lt;Your name&gt; Council*. Mine is **Ethan
-Council**, and every decision count and score on this page comes from my own decisions.
-
 > [!NOTE]
-> **This is a preview.** The benchmark is built and has been run on my own decisions. No model has been trained on
-> my data yet, and there is nothing to install. The [status table](#status-11-november-2026) lists exactly what
-> exists.
+> **This is a preview.** The pictures show the design, not a working product. What exists today is a benchmark,
+> which is a fixed test: 1,887 real questions that AI agents asked me, with the answer I chose each time. It has
+> been run against untrained models. No model has been trained on my data yet, and there is nothing to install.
+> [What exists today](#what-exists-today) lists every part.
 
-## How it works
+## What it is for
 
-### The council: four small experts and one person
+AI agents hand back work that sounds finished. Often it is not. It is the old version, or half done, or built on
+a claim the agent made up. You type the correction. The next day you type the same correction again.
 
-One small open model (Qwen3, its weights compressed to 4 bits each so it fits a laptop) carries four LoRA
-adapters: thin add-on layers, each trained for one job, that share the same base model. They suggest; the person
-decides.
+The Council is a small model of your own judgement that reads the agents' work before you do. It predicts what
+you would say about it. When the work is slop, the Council sends it back to the agent with the feedback you
+would otherwise have to repeat. You only see what passes.
+
+It is not a yes/no approver. Accepting or rejecting is the easy part. The hard part is knowing what you would
+say, down to "I already said this yesterday".
+
+<picture>
+  <source media="(max-width: 767px) and (prefers-color-scheme: dark)" srcset="assets/explainer-dark-m.svg">
+  <source media="(max-width: 767px)" srcset="assets/explainer-light-m.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/explainer-dark.svg">
+  <img src="assets/explainer-light.svg" width="100%" alt="How the Council is meant to work, on one real case from 11 November 2026. This is the design, not a working product; no model is trained yet. One: an agent hands in work, saying 'README preview is ready for your review'. Two: the Council catches the slop: the preview is ringed in red and stamped 'sent back', because a newer version had already replaced this one. Three: it goes back with my feedback, 'this is the old version'. Other lines I keep repeating to agents: 'I already said this yesterday' and 'where is the source for that number?'. Only the fixed work reaches me. What happened on 11 November 2026: this preview reached me. Catching it first is what the Council is being built to do.">
+</picture>
+
+The picture shows a real case. On 11 November 2026 an agent showed me a preview of a README that a newer version
+had already replaced. I always reject stale work. A council that knows that would have sent it back before it
+reached me.
+
+Each person trains their own council on their own decisions, and can name it after themselves. The one in this
+repository is mine, so every count and score here comes from my own decisions.
+
+## How it will work
+
+One small open model does the work of four members. The model is Qwen3, with each of its numbers squeezed into 4
+bits so it fits on a laptop. Each member is a small add-on trained for one job (a LoRA adapter), and all four
+share the same base model. The members send work back with the feedback I would give. I see what passes, and I
+always have the last word.
 
 | Member | Its job | State |
 | --- | --- | --- |
@@ -48,154 +58,166 @@ decides.
 | **Coder** | My code review | Planned |
 | **Orchestrator** | Sees all of my data and routes work to the others | Planned |
 
-### How a decision is scored
+It runs on your own hardware because of what it has to learn from. To learn how you judge, a model has to train
+on your private history: the choices you make, and later your messages and notes. If that needed a data centre,
+your history would have to leave home. On an ordinary laptop it does not, and anyone can train their own.
 
-The Scrutiniser comes first because it has a clean target: when an AI agent stops and asks me to pick between
-options, predict which one I pick, then check against what I really chose.
-
-- **The test set is my real decisions.** 1,887 times between 2 July and 10 November 2026, a Claude Code agent asked
-  me a single-choice question (those sessions ran on Anthropic's cloud models; everything the council does with
-  the transcripts afterwards runs locally). A model learns from the earlier ones and is tested on the **latest 375** (3 to 10
-  November), so the test asks it to predict my next decisions, not ones it has already seen.
-- **The test is blind.** Agents often mark one option as "recommended", and I usually take it. The benchmark hides
-  that mark and shuffles the options, so a model cannot score by spotting it.
-- **What counts most is when I say no.** In 292 of the 375 test decisions the agent had recommended an option. I
-  took it 239 times and **overrode it 53 times**. Copying the agent (and taking the first option when it
-  recommends nothing) would match 71.5% of all 375, but none of those 53.
-
-**Where it stands.** The best model so far is untrained: qwen3:4b, run as it comes on a laptop GPU. It matched my
-choice on **65.6%** of the 375 decisions, about two in three; chance, averaged over how many options each
-question had, is 39.8%. On the 53 overrides it got **9 right (17.0%)**.
-
-**The bar a trained Scrutiniser must clear**, fixed after the untrained runs and before any training:
-
-- **At least 70.6% of the 375:** five points above the best untrained model, and a statistically significant gain
-  on a McNemar test. It sits below copying's 71.5% because copying reads a mark the model never sees.
-- **At least 13 of the 53 overrides (24.5%):** what qwen3:4b reached when shown similar past decisions. 53 is a
-  small number, so this floor guards against a model that merely imitates the agent; it is not proof of skill.
-- **No new weaknesses:** at most five points lost when I take the recommendation, at most 1% unanswered, and no
-  sign that it memorised training rows.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/held-out-dark.svg">
-  <img src="docs/img/held-out-light.svg" width="100%" alt="Held-out results on 375 decisions. Copying the agent's recommendation matches 71.5% overall but none of the 53 decisions where I overrode the agent. The best untrained model, qwen3:4b zero-shot, matches 65.6% overall and 17.0% of the overrides. A trained model must reach 70.6% overall and 24.5% on overrides.">
-</picture>
+So far, a training test on synthetic (made-up) data fitted a 1.7-billion-parameter Qwen3 into 3.34 GB of
+graphics memory on a 6 GB laptop graphics card, the kind in a mid-range gaming laptop. The planned
+4-billion-parameter model has not been measured on that laptop yet. The first real training run may rent a
+graphics card for about an hour, and only with my approval.
 
 <details>
-<summary><b>Full held-out results</b> (375 decisions, options shuffled, recommendation hidden)</summary>
-
-| Setup | Matched me, all 375 | When I took the recommendation (239) | When I overrode it (53) |
-| --- | --- | --- | --- |
-| Random pick (one seeded draw) | 36.0% | 38.9% | 30.2% |
-| Always the first option | 38.1% | 39.3% | 37.7% |
-| Copy the agent's recommendation, else the first option (reads a mark the models cannot see) | 71.5% | 100% | **0%** |
-| qwen3:4b zero-shot, laptop GPU | **65.6%** (95% CI 60.7 to 70.2) | 79.9% | 17.0% |
-| qwen3:4b shown 4 similar past decisions | 61.1% | 72.4% | 24.5% |
-
-The two right-hand columns cover the 292 decisions where the agent marked a recommendation; the other 83 had none
-to take or override. Chance, averaged over how many options each question had, is 39.8%. On unshuffled options,
-"always answer option 1" scores 79.2%, which suggests agents tend to list their own pick first; that is why every
-published number uses shuffled options.
-
-</details>
-
-### Where it is going (design)
-
-<details>
-<summary><b>The full design: data, privacy pipeline, council and nightly update loop</b></summary>
+<summary><b>The full design: data, privacy steps, council and nightly update</b></summary>
 
 ```mermaid
 flowchart TB
-  S["My own history<br/>agent decisions now; messages, notes<br/>and design feedback later"] --> P["Privacy pipeline<br/>pseudonymise, redact, exclude,<br/>my signed review gate"]
-  P --> C[("One cleaned corpus,<br/>one view per member")]
+  S["My own history<br/>agent decisions now; messages, notes<br/>and design feedback later"] --> P["Privacy steps<br/>names replaced, private details removed,<br/>my signed approval"]
+  P --> C[("One cleaned set of data,<br/>one view per member")]
   C --> council
-  subgraph council["The council: four LoRA adapters on one small open model (Qwen3, 4-bit)"]
+  subgraph council["The council: four add-ons on one small open model (Qwen3)"]
     direction LR
     L1["Scrutiniser<br/>reviews work the way I would"] ~~~ L2["Designer<br/>my taste"] ~~~ L3["Coder<br/>my code review"] ~~~ L4["Orchestrator<br/>routes work to the others"]
   end
   council --> night
   subgraph night["Every night (design)"]
     direction LR
-    R["Reflect on the day:<br/>decisions and corrections"] --> SL["Sleep: consolidate<br/>a candidate update"] --> D["Dream: rehearse<br/>on synthetic cases"] --> G{"Frontier-model gate:<br/>benchmark gates,<br/>canary audit"}
+    R["Look back on the day:<br/>decisions and corrections"] --> SL["Draft an update"] --> D["Practise it<br/>on made-up cases"] --> G{"Check before adopting:<br/>pass marks,<br/>memorisation check"}
   end
   G -- better --> U["Adopt the update"]
-  G -- worse --> RB["Keep the previous adapters"]
+  G -- worse --> RB["Keep the previous version"]
   U --> council
 ```
 
-Each night the members are meant to reflect on the day, consolidate an update, rehearse it on synthetic cases and
-keep it only if it scores better on held-out decisions. That loop is design only for now. The data work runs on my
-laptop. The frontier models that plan and judge updates see aggregate scores and synthetic cases, never my raw data. The one planned exception: the first real training run may use a rented GPU for about an
-hour, and only if I approve uploading the cleaned, pseudonymised training view.
+Each night the members are meant to look back on the day, draft an update to themselves, practise it on made-up
+cases, and keep it only if it scores better on decisions it has not seen. That loop is design only for now. The
+data work runs on my laptop. The large cloud models that plan and judge updates see overall scores and made-up
+cases, never my raw data. One planned exception: the first real training run may use a rented graphics card for
+about an hour, and only if I approve uploading the cleaned training files, with names already replaced.
 
 </details>
 
-## Quick start
+## What exists today
 
-The tests run on synthetic transcripts, so they need none of your data:
-
-```bash
-git clone https://github.com/Sohwhat6420/human-llm-council && cd human-llm-council/build
-python -m pip install pytest && python -m pytest -q tests     # 21 tests
-node --test retest/test/retest.test.mjs                       # 14 tests for the retest tool (Node 18+)
-```
-
-## Status (11 November 2026)
+Status on 11 November 2026.
 
 | Part | State | Evidence |
 | --- | --- | --- |
-| Research | Notes on competitors, self-improvement, architecture, data sources, hardware and prior art. They stay private until every citation is checked; an audit found some were wrong. | Private notes |
-| Scrutiniser benchmark | **Built and run on my data.** 1,887 single-choice decisions (2 Jul to 10 Nov 2026) from my Claude Code sessions; 1,510 for training, 375 held out by time (3 to 10 Nov), test ids frozen by SHA-256. | [`build/council_eval/`](build/council_eval/) |
-| Baselines | **Run** on the 375 held-out decisions, options shuffled, recommendation hidden. Best untrained setup: qwen3:4b zero-shot, **65.6%**. | [Results above](#how-a-decision-is-scored) |
-| Privacy pipeline | Stages 0 to 5 and 7 **built and tested** for agent decisions. Message and note sources are **designed, not built**. | [docs/PRIVACY-PIPELINE.md](docs/PRIVACY-PIPELINE.md) |
-| Laptop training test | **Run on synthetic data only.** Qwen3-1.7B, 4-bit QLoRA on an RTX 3060 Laptop GPU (6 GB): 27.5 min of training, peak 3.34 GB of graphics memory. Memorisation check: none of 5 planted canary rows leaked, and the same check caught all 5 when a small model was deliberately trained to memorise them. | [`build/train/`](build/train/) |
-| Scrutiniser LoRA on real data | **Not started.** It waits for my own review-gate approval of the cleaned training files. | |
-| Self-consistency retest | Tool **built**: a local web page that re-asks 40 held-out questions, to measure how often I agree with myself. Not taken yet. | [`build/retest/`](build/retest/) |
+| The benchmark for the Scrutiniser | **Built and run on my data.** 1,887 questions that Claude Code agents asked me between 2 July and 10 November 2026, each with the one option I chose. 1,510 are for a model to learn from. The newest 375 (3 to 10 November) are the test. The other 2 repeated an earlier question, so they were left out. The test questions were locked before any model saw them. | [`build/council_eval/`](build/council_eval/) |
+| Untrained models | **Run** on the 375 test questions, with the options shuffled and the agent's own suggestion hidden. The best one, qwen3:4b with no training on my decisions, picked what I picked about two times in three. Picking at random gets about two in five. | [The benchmark](#the-benchmark-in-plain-words) |
+| Privacy steps | **Built and tested** for agent decisions: reading the transcripts in, separating my words from other people's, finding private details, replacing names, removing what must not be kept, my signed approval, and the memorisation check after training. The same steps for messages and notes are **designed, not built**. | [docs/PRIVACY-PIPELINE.md](docs/PRIVACY-PIPELINE.md) |
+| Laptop training test | **Run on made-up data only.** A 1.7-billion-parameter Qwen3 was trained on a laptop graphics card (RTX 3060, 6 GB): 27.5 minutes of training, using 3.34 GB of graphics memory at most. A memorisation check planted 5 marker rows in the training data, and the trained model gave away none of them. The same check caught all 5 when a small model was trained to memorise them on purpose, which shows the check works. Method: QLoRA, which trains a small add-on on top of the shrunk model. | [`build/train/`](build/train/) |
+| Scrutiniser trained on my real data | **Not started.** It waits for my own approval of the cleaned training files. | |
+| Checking how consistent I am | Tool **built**: a local web page that asks me 40 of the test questions again, to measure how often I agree with myself. Not taken yet. | [`build/retest/`](build/retest/) |
 | Designer, Coder, Orchestrator | Design only. | |
-| Nightly reflect, sleep, dream, update | Design only. | |
-| Auto-answer mode | Design only. It will always show the agent's question with the council's pick preselected; it never answers silently. | [docs/PRIOR-ART.md](docs/PRIOR-ART.md) |
+| Nightly update | Design only. | |
+| Answering agents' questions for me | Design only. I will always see the agent's question with the council's answer filled in, and I can change it. It never answers behind my back. | [docs/PRIOR-ART.md](docs/PRIOR-ART.md) |
+| Research | Notes on competitors, self-improvement, architecture, data sources, hardware and prior art. They stay private until every citation is checked; an audit found some were wrong. | Private notes |
 
-## What is in this repository
+<details>
+<summary><b>What is in this repository</b></summary>
 
 | Path | What it is |
 | --- | --- |
-| [`build/council_eval/`](build/council_eval/) | The benchmark harness, pure Python standard library: ingest of agent decisions from local transcripts, the scrubber, the time split and freeze, blind and shuffled prompts, baselines, a local Ollama predictor, the metrics and the pre-registered gates, the training view with canaries, the review sheet and the SHA-256-bound approval. |
-| [`build/train/`](build/train/) | The LoRA training script (TRL, completion-only loss, QLoRA on small GPUs). It exits without a valid approval and discards an adapter that leaks a canary. Also the canary positive control and a row-length check. |
-| [`build/tests/`](build/tests/) | 21 pytest tests on synthetic transcripts. |
-| [`build/retest/`](build/retest/) | The self-consistency retest: a loopback-only web page and scorer, with 14 tests and a headless smoke test on synthetic fixtures. |
-| [`docs/PRIVACY-PIPELINE.md`](docs/PRIVACY-PIPELINE.md) | The privacy design: hard rules, the stages, consent. |
+| [`build/council_eval/`](build/council_eval/) | The benchmark code, in plain Python with no extra packages. It reads agent decisions from local transcripts, strips private details, splits them by time and locks the test, builds the blind, shuffled questions, runs the simple comparison rules and a local model, scores them against pass marks fixed in advance, and prepares the training files, the review sheet and the signed approval. |
+| [`build/train/`](build/train/) | The training script. It refuses to run without a valid approval and throws away any result that gives away a planted marker row. Also the run that proves the memorisation check works, and a row-length check. |
+| [`build/tests/`](build/tests/) | 21 pytest tests on made-up transcripts. |
+| [`build/retest/`](build/retest/) | The consistency retest: a web page that only this computer can reach, and its scorer, with 14 tests and a smoke test on made-up data. |
+| [`docs/BENCHMARK.md`](docs/BENCHMARK.md) | The benchmark in more detail, and the pass mark. |
+| [`docs/PRIVACY-PIPELINE.md`](docs/PRIVACY-PIPELINE.md) | The privacy design: hard rules, the steps, consent. |
 | [`docs/PRIOR-ART.md`](docs/PRIOR-ART.md) | Prior art and the defensive publication. |
-| [`assets/`](assets/), [`tools/banner/`](tools/banner/) | The banner (animated SVG; wide and phone versions, light and dark), the 1200 × 627 LinkedIn image and the 1280 × 640 social preview, and the script that builds them. |
+| [`assets/`](assets/), [`tools/banner/`](tools/banner/) | The banner and the explainer (animated SVG; wide and phone versions, light and dark), the 1280 × 640 social preview, and the script that builds them. |
 
-**Not in this repository, by design:** any data, transcript, export, corpus, review sheet, adapter or
-weights; the research notes; and every name other than mine. The code reads its private settings (alias
-table, HMAC key, extra exclusions) from `build/local/`, which git ignores.
+</details>
 
-## Prior art / defensive publication (11 November 2026)
+## The benchmark, in plain words
 
-This builds on earlier work, and says so: agents that simulate individuals (Park et al. 2024), a model that learns
-a user's permission decisions (Wu et al. 2025), and patents from Microsoft and Meta on predicting user responses. A
-model of one person that answers for them is not new.
+The first member, the Scrutiniser, starts with something that can be checked. When an AI agent stops and asks me
+to choose between options, the model has to predict which one I pick. That is narrower than the goal above, but
+the answer is clear: the prediction either matches what I really chose or it does not.
 
-To my knowledge no public benchmark scores a user-proxy on the cases where the user overrode the agent. Two
-methods are published openly here, dated 11 November 2026, so they stay free for anyone to use:
-**recommendation-blind training and testing** and **the override-accuracy deployment gate**. Full
-descriptions and citations: [docs/PRIOR-ART.md](docs/PRIOR-ART.md). There is no patent or patent
-application on any of it.
+The questions are real. 1,887 times between 2 July and 10 November 2026, a Claude Code agent asked me to pick
+one option. (Those sessions ran on Anthropic's cloud models. Everything the council does with the transcripts
+afterwards runs on my laptop.) A model learns from the earlier ones and is tested on the newest 375, so it has to
+predict choices it has never seen.
+
+The test is blind. Agents often mark one option as "recommended", and I usually take it. The benchmark hides
+that mark and shuffles the options, so a model cannot score by spotting the agent's pick.
+
+Nothing is trained yet. The best model so far, qwen3:4b run as it comes on a laptop, picked what I picked about
+two times in three. Picking at random gets about two in five. On the decisions where I did not take the agent's
+suggestion it did much worse: it got most of those wrong.
+
+Those decisions matter most. A rule that always agrees with the agent looks good on paper, because I agree with
+the agent most of the time. But it was wrong every single time I disagreed, which is exactly when a filter
+matters. So a trained model has to pass twice: on all the test questions, and on the ones where I went against
+the agent. Closing that gap is what training is for.
+
+More detail, and the pass mark, are in [docs/BENCHMARK.md](docs/BENCHMARK.md).
+
+## Run the tests
+
+There is no model to install yet. What you can run is the test suite. It uses made-up transcripts and needs none
+of your data. You need Python 3, and Node 18 or later for the retest tool's tests. If your system only has
+`python3`, use that in place of `python`.
+
+```bash
+git clone https://github.com/Sohwhat6420/human-llm-council && cd human-llm-council/build
+```
+
+```bash
+python -m pip install pytest && python -m pytest -q tests
+```
+
+```console
+21 passed
+```
+
+```bash
+node --test retest/test/retest.test.mjs
+```
+
+```console
+# tests 14
+# pass 14
+# fail 0
+```
 
 ## Security and privacy
 
-- **Local-first.** Raw data is processed only on the owner's machine by local models. Remote models get
-  schemas and synthetic examples, never rows.
-- **Other people are third parties.** Names become stable HMAC tokens with role tags; rows that mention minors
-  are dropped, not redacted (a keyword filter today; a local-model check is designed); a close person's words are never a training target without their consent.
-- **Training is gated twice:** before (a signed approval bound to the files' SHA-256s) and after (a canary
-  memorisation audit with a positive control).
-- **Transcripts are untrusted text** (OWASP LLM01): the harness parses them as data and never executes or
-  follows anything in them. The retest server listens on loopback only.
+- Raw data is processed only on the owner's machine, by models that run there. Cloud models are given the shape
+  of the data and made-up examples, never real rows.
+- Other people are third parties. Their names are replaced with stable codes (keyed hashes, HMAC) and a role tag
+  such as peer or family, so how I talk to someone survives and who they are does not. Rows that mention minors
+  are dropped, not edited (a keyword filter today; a check by a local model is designed). A close person's words
+  are never used as a training target without their consent.
+- Training is checked twice. Before: it will not start without my signed approval, which is tied to the exact
+  files I reviewed (by their SHA-256 fingerprints). After: a memorisation check looks in the trained model for
+  marker rows planted in the training data, and a control run proves the check can catch a leak.
+- Transcripts are treated as untrusted text, because someone could plant instructions in them (prompt injection,
+  the first risk on OWASP's top ten for LLM applications). The code reads them as data and never follows or runs
+  anything in them. The retest page can only be reached from the same computer.
+
+Not in this repository, by design: any data, transcript, export, training file, review sheet, trained add-on or
+model weights; the research notes; and every name other than mine. The code reads its private settings (the name
+table, the secret key, extra exclusions) from `build/local/`, which git ignores. The privacy design is in
+[docs/PRIVACY-PIPELINE.md](docs/PRIVACY-PIPELINE.md).
+
+## Prior art / defensive publication (11 November 2026)
+
+This builds on earlier work, and says so: agents that simulate individual people (Park et al. 2024), a model that
+learns a user's permission decisions (Wu et al. 2025), and patents from Microsoft and Meta on predicting user
+responses. A model of one person that answers for them is not new.
+
+To my knowledge, no public benchmark scores a model of a user on the times the user went against the agent. Two
+methods are published openly here, dated 11 November 2026, so they stay free for anyone to use: **training and
+testing with the agent's recommendation hidden**, and **a check that the model gets right the times I went
+against the agent before it is allowed to answer for me**. Full descriptions and citations:
+[docs/PRIOR-ART.md](docs/PRIOR-ART.md). There is no patent or patent application on any of it.
 
 ## Licence
 
-Apache-2.0. See [LICENSE](LICENSE). By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)). The banner's
-type is Instrument Serif, Hanken Grotesk and JetBrains Mono (SIL OFL 1.1, licences in
+Apache-2.0. See [LICENSE](LICENSE). By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)). Questions and
+corrections are welcome as [issues](https://github.com/Sohwhat6420/human-llm-council/issues). The type in the
+banner and the explainer is Instrument Serif, Hanken Grotesk and JetBrains Mono (SIL OFL 1.1, licences in
 [`tools/banner/fonts/`](tools/banner/fonts/)).
