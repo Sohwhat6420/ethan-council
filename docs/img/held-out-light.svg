@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 620" width="1200" height="620" role="img" aria-labelledby="t d">
-<title id="t">Copying the agent scores 71.5% overall and 0% on the decisions the human overrode</title>
+<title id="t">Copying the agent scores 71.5% overall and 0% on the decisions I overrode</title>
 <desc id="d">Held-out results, 375 decisions. Overall accuracy and accuracy on the 53 overrides for five arms: random 36.0 and 30.2; always the first option 38.1 and 37.7; copying the agent's recommendation 71.5 and 0; qwen3:4b zero-shot 65.6 and 17.0; qwen3:4b with 4 past decisions 61.1 and 24.5. A trained model must reach 70.6 overall and 24.5 on overrides.</desc>
 <rect width="1200" height="620" fill="#ffffff"/>
 <text x="40" y="58" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="30" font-weight="600" fill="#1f2328">Copying the agent scores 71.5% and gets every override wrong</text>
 <text x="40" y="94" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" fill="#59636e">375 held-out decisions, options shuffled, the agent's recommendation hidden. A trained model must clear both dashed lines.</text>
 <circle cx="48" cy="134" r="8" fill="#2a78d6"/><text x="64" y="140" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#1f2328">Overall</text>
-<path d="M170 124L180 134L170 144L160 134Z" fill="#eb6834" stroke="#ffffff" stroke-width="2"/><text x="188" y="140" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#1f2328">When the human overrode the agent (53 decisions)</text>
+<path d="M170 124L180 134L170 144L160 134Z" fill="#eb6834" stroke="#ffffff" stroke-width="2"/><text x="188" y="140" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#1f2328">When I overrode the agent (53 decisions)</text>
 <line x1="400" y1="162" x2="400" y2="522" stroke="#d1d9e0" stroke-width="1"/>
 <text x="400" y="550" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#59636e" text-anchor="middle">0%</text>
 <line x1="587.5" y1="162" x2="587.5" y2="522" stroke="#d1d9e0" stroke-width="1"/>
@@ -44,5 +44,5 @@
 <line x1="583.75" y1="492" x2="858.25" y2="492" stroke="#818b98" stroke-width="2"/>
 <circle cx="858.25" cy="492" r="9" fill="#2a78d6" stroke="#ffffff" stroke-width="2"/>
 <path d="M583.75 481L594.75 492L583.75 503L572.75 492Z" fill="#eb6834" stroke="#ffffff" stroke-width="2"/>
-<text x="40" y="598" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#59636e">Untrained baselines, 11 Nov 2026. The agent's own pick reads metadata no model sees. Source: build/council_eval.</text>
+<text x="40" y="598" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#59636e">Untrained baselines, 10 Nov 2026. The agent's own pick reads metadata no model sees. Source: build/council_eval.</text>
 </svg>
