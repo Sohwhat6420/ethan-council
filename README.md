@@ -1,4 +1,9 @@
-# Human LLM Council
+<picture>
+  <source media="(max-width: 767px) and (prefers-color-scheme: dark)" srcset="assets/banner-dark-m.svg">
+  <source media="(max-width: 767px)" srcset="assets/banner-light-m.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
+  <img src="assets/banner-light.svg" width="100%" alt="Human LLM Council. A personalised human you run on your own hardware: it catches the slop AI agents hand you and sends it back with your feedback. The picture shows the design. Work from AI agents queues on the left. The Council reads each piece first. A stale README preview is ringed in red, stamped 'sent back' and returned with the note 'this is the old version'; a made-up claim goes back with 'where is the source for that number?'; a diff that skips the tests goes back with 'I already said this yesterday'. Only work that passes reaches the person on the right. Preview: no model is trained yet.">
+</picture>
 
 **A personalised human you run on your own hardware, built to intercept, audit and filter AI output before it
 reaches you: the made-up claims, the hallucinations and the subpar results.**
@@ -8,7 +13,7 @@ reaches you: the made-up claims, the hallucinations and the subpar results.**
 [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
 
 > [!NOTE]
-> **This is a preview**, not a working product. What exists today is a benchmark,
+> **This is a preview.** The pictures show the design, not a working product. What exists today is a benchmark,
 > which is a fixed test: 1,887 real questions that AI agents asked me, with the answer I chose each time. It has
 > been run against untrained models. No model has been trained on my data yet, and there is nothing to install.
 > [What exists today](#what-exists-today) lists every part.
@@ -25,7 +30,14 @@ would otherwise have to repeat. You only see what passes.
 It is not a yes/no approver. Accepting or rejecting is the easy part. The hard part is knowing what you would
 say, down to "I already said this yesterday".
 
-A real case: on 11 November 2026 an agent showed me a preview of a README that a newer version
+<picture>
+  <source media="(max-width: 767px) and (prefers-color-scheme: dark)" srcset="assets/explainer-dark-m.svg">
+  <source media="(max-width: 767px)" srcset="assets/explainer-light-m.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/explainer-dark.svg">
+  <img src="assets/explainer-light.svg" width="100%" alt="How the Council is meant to work, on one real case from 11 November 2026. This is the design, not a working product; no model is trained yet. One: an agent hands in work, saying 'README preview is ready for your review'. Two: the Council catches the slop: the preview is ringed in red and stamped 'sent back', because a newer version had already replaced this one. Three: it goes back with my feedback, 'this is the old version'. Other lines I keep repeating to agents: 'I already said this yesterday' and 'where is the source for that number?'. Only the fixed work reaches me. What happened on 11 November 2026: this preview reached me. Catching it first is what the Council is being built to do.">
+</picture>
+
+The picture shows a real case. On 11 November 2026 an agent showed me a preview of a README that a newer version
 had already replaced. I always reject stale work. A council that knows that would have sent it back before it
 reached me.
 
@@ -114,6 +126,7 @@ Status on 11 November 2026.
 | [`docs/BENCHMARK.md`](docs/BENCHMARK.md) | The benchmark in more detail, and the pass mark. |
 | [`docs/PRIVACY-PIPELINE.md`](docs/PRIVACY-PIPELINE.md) | The privacy design: hard rules, the steps, consent. |
 | [`docs/PRIOR-ART.md`](docs/PRIOR-ART.md) | Prior art and the defensive publication. |
+| [`assets/`](assets/), [`tools/banner/`](tools/banner/) | The banner and the explainer (animated SVG; wide and phone versions, light and dark), the 1280 × 640 social preview, and the script that builds them. |
 
 </details>
 
@@ -198,4 +211,6 @@ Full descriptions and citations: [docs/PRIOR-ART.md](docs/PRIOR-ART.md). There i
 ## Licence
 
 Apache-2.0. See [LICENSE](LICENSE). By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)). Questions and
-corrections are welcome as [issues](https://github.com/Sohwhat6420/human-llm-council/issues).
+corrections are welcome as [issues](https://github.com/Sohwhat6420/human-llm-council/issues). The type in the
+banner and the explainer is Instrument Serif, Hanken Grotesk and JetBrains Mono (SIL OFL 1.1, licences in
+[`tools/banner/fonts/`](tools/banner/fonts/)).
