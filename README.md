@@ -1,55 +1,47 @@
-# Human LLM Council
-
-**A personalised human you run on your own hardware, built to intercept, audit and filter AI output before it
-reaches you: the made-up claims, the hallucinations and the subpar results.**
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
+  <img src="assets/banner-light.svg" width="100%" alt="Human LLM Council. An LLM that thinks and decides like one person, and runs on consumer-grade hardware. Four members sit round a table, the Scrutiniser first, then the planned Designer, Coder and Orchestrator; each passes its suggestion to the person at the head of the table, who decides. Preview: no model is trained on real data yet.">
+</picture>
 
 [![test](https://github.com/Sohwhat6420/human-llm-council/actions/workflows/test.yml/badge.svg)](https://github.com/Sohwhat6420/human-llm-council/actions/workflows/test.yml)
 [![Status: preview](https://img.shields.io/badge/status-preview-orange)](#status-11-november-2026)
 [![Licence: Apache-2.0](https://img.shields.io/badge/licence-Apache--2.0-blue)](LICENSE)
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/img/held-out-dark.svg">
-  <img src="docs/img/held-out-light.svg" width="100%" alt="Held-out results on 375 decisions. Copying the agent's recommendation scores 71.5% overall and 0% on the 53 decisions where the human overrode the agent. The best untrained model, qwen3:4b zero-shot, scores 65.6% and 17.0%. A trained model must reach 70.6% overall and 24.5% on overrides.">
-</picture>
+**The goal: an LLM that thinks and decides the way one person does, small enough to run on that person's own
+laptop.**
 
-AI agents now produce more than one person can check. A Human LLM Council sits between them and you: a model of one
-person, trained on that person's own decisions, that reviews what the agents send and stops what that person would
-reject. The case it is being built for happened on 11 November 2026: an agent showed me a preview of a README that a
-newer version had already superseded. A council that knows I always reject stale work would have caught it and sent
-it back before it reached me.
+**Why a laptop.** To learn how someone decides, a model has to train on their private history: the choices they
+make, and later their messages and notes. If that needs a data centre, the history has to leave home. On
+consumer-grade hardware it never does, anyone can train their own, and there is no server to pay for or to leak.
+The training test fitted in 3.34 GB of graphics memory on a 6 GB laptop GPU, the kind in a mid-range gaming
+laptop (measured on synthetic data, not mine).
 
-Each person trains their own and names it after themselves: *&lt;Your name&gt; Council*. Mine is **Ethan Council**,
-the reference instance, and every number on this page comes from it.
+**What it is for first.** AI agents now produce more than one person can check. The council sits between them and
+me and flags what I would reject before it reaches me. The case it is built for happened on 11 November 2026: an
+agent showed me a preview of a README that a newer version had already replaced. A council that knows I always
+reject stale work would have sent it back.
 
-- **It is scored on when you say no.** I take my agents' recommended option 81.7% of the time, so copying them looks
-  good overall and gets every override wrong (the chart above). The benchmark hides the recommendation, shuffles the
-  options and only passes a model that also predicts the decisions where I overrode the agent.
-- **It is designed for a laptop.** Four planned LoRA adapters share one small open model (Qwen3, 4-bit). The
-  training test, on synthetic data, peaked at 3.34 GB on a 6 GB laptop GPU, so the person's data can stay home.
-- **It is private by construction.** Names are pseudonymised and anything involving minors is dropped before
-  training. Training needs a signed approval, and a canary audit checks the model did not memorise rows (0 of 5
-  leaked; its positive control caught 5 of 5).
+Each person trains their own and names it after themselves: *&lt;Your name&gt; Council*. Mine is **Ethan
+Council**, the reference instance, and every number on this page comes from it.
 
 > [!NOTE]
-> **This is a preview.** The benchmark is built and measured. No model has been trained on real data yet, and there
-> is nothing to install. The [status table](#status-11-november-2026) says exactly what exists.
-
-## Quick start
-
-The tests run on synthetic transcripts, so they need none of your data:
-
-```bash
-git clone https://github.com/Sohwhat6420/human-llm-council && cd human-llm-council/build
-python -m pip install pytest && python -m pytest -q tests     # 21 tests
-node --test retest/test/retest.test.mjs                       # 14 tests for the retest tool (Node 18+)
-```
+> **This is a preview.** The benchmark is built and has been run on my own decisions. No model has been trained on
+> my data yet, and there is nothing to install. The [status table](#status-11-november-2026) lists exactly what
+> exists.
 
 ## How it works
 
-The council is four small members. The Scrutiniser reviews work the way I would and flags what I would reject; it
-is the first one being built. The Designer, the Coder and the Orchestrator follow. Each night they are
-meant to reflect on the day, sleep, dream and update their weights, with frontier models planning and gating every
-update so the council cannot make itself worse.
+### The council: four small experts and one person
+
+One small open model (Qwen3, compressed to 4-bit so it fits a laptop) carries four LoRA adapters: thin add-on
+layers, each trained for one job, that share the same base model. They suggest; the person decides.
+
+| Member | Its job | State |
+| --- | --- | --- |
+| **Scrutiniser** | Reviews work the way I would and flags what I would reject | Being built first |
+| **Designer** | My taste in layout and visuals | Planned |
+| **Coder** | My code review | Planned |
+| **Orchestrator** | Routes work to the others; the most like me overall | Planned |
 
 ```mermaid
 flowchart TB
@@ -70,12 +62,68 @@ flowchart TB
   U --> council
 ```
 
-The data work runs on my laptop. The frontier models that plan and judge updates see aggregate scores and
-synthetic cases, never my raw data. The one planned exception: the first real training run may use a rented
-GPU for about an hour, and only if I approve uploading the cleaned, pseudonymised training view.
+Each night the members are meant to reflect on the day, consolidate an update, rehearse it on synthetic cases and
+keep it only if it scores better, so the council cannot make itself worse. That loop is design only for now. The
+data work runs on my laptop. The frontier models that plan and judge updates see aggregate scores and synthetic
+cases, never my raw data. The one planned exception: the first real training run may use a rented GPU for about an
+hour, and only if I approve uploading the cleaned, pseudonymised training view.
 
-The first demo is the Scrutiniser, because it has a clean target: predict my answer to a question an agent
-actually asked me, and score it against what I really chose.
+### How a decision is scored
+
+The Scrutiniser comes first because it has a clean target: when an AI agent stops and asks me to pick between
+options, predict which one I pick, then check against what I really chose.
+
+- **The test set is my real decisions.** 1,887 times between 2 July and 10 November 2026, a Claude Code agent asked
+  me a single-choice question. A model learns from the earlier ones and is tested on the **latest 375** (3 to 10
+  November), so the test asks it to predict my next decisions, not ones it has already seen.
+- **The test is blind.** Agents often mark one option as "recommended", and I usually take it. The benchmark hides
+  that mark and shuffles the options, so a model cannot score by spotting it.
+- **What counts most is when I say no.** In 292 of the 375 test decisions the agent had recommended an option. I
+  took it 239 times and **overrode it 53 times**. Copying the agent would match 71.5% of all 375, which sounds
+  good, yet it gets none of those 53 right. A useful council has to predict the overrides too.
+
+**Where it stands.** The best model so far is untrained: qwen3:4b, run as it comes on a laptop GPU. It matched my
+choice on **65.6%** of the 375 decisions, about two in three; picking at random would match about 40% (39.8%).
+On the 53 overrides it got **9 right (17.0%)**.
+
+**The bar a trained Scrutiniser must clear, fixed before any training:** at least **70.6%** of the 375 (five points
+above the best untrained model, and a statistically significant gain on a McNemar test), and at least **13 of the
+53 overrides (24.5%)**, what qwen3:4b reached when shown similar past decisions. It must also lose no more than
+five points when I take the recommendation, fail to answer at most 1% of the time, and pass a check that it has not
+memorised training rows.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/img/held-out-dark.svg">
+  <img src="docs/img/held-out-light.svg" width="100%" alt="Held-out results on 375 decisions. Copying the agent's recommendation matches 71.5% overall but none of the 53 decisions where I overrode the agent. The best untrained model, qwen3:4b zero-shot, matches 65.6% overall and 17.0% of the overrides. A trained model must reach 70.6% overall and 24.5% on overrides.">
+</picture>
+
+<details>
+<summary><b>Full held-out results</b> (375 decisions, options shuffled, recommendation hidden)</summary>
+
+| Setup | Matched me, all 375 | When I took the recommendation (239) | When I overrode it (53) |
+| --- | --- | --- | --- |
+| Random pick | 36.0% | 38.9% | 30.2% |
+| Always the first option | 38.1% | 39.3% | 37.7% |
+| Copy the agent's recommendation (reads a mark the models cannot see) | 71.5% | 100% | **0%** |
+| qwen3:4b zero-shot, laptop GPU | **65.6%** (95% CI 60.7 to 70.2) | 79.9% | 17.0% |
+| qwen3:4b shown 4 similar past decisions | 61.1% | 72.4% | 24.5% |
+
+The two right-hand columns cover the 292 decisions where the agent marked a recommendation; the other 83 had none
+to take or override. Chance, averaged over how many options each question had, is 39.8%. On unshuffled options,
+"always answer option 1" scores 79.2%, which suggests agents tend to list their own pick first; that is why every
+published number uses shuffled options.
+
+</details>
+
+## Quick start
+
+The tests run on synthetic transcripts, so they need none of your data:
+
+```bash
+git clone https://github.com/Sohwhat6420/human-llm-council && cd human-llm-council/build
+python -m pip install pytest && python -m pytest -q tests     # 21 tests
+node --test retest/test/retest.test.mjs                       # 14 tests for the retest tool (Node 18+)
+```
 
 ## Status (11 November 2026)
 
@@ -85,32 +133,14 @@ Measured or built only. Nothing in this table is a projection.
 | --- | --- | --- |
 | Research | 14 research lanes returned (competitors, self-improvement, architecture, data sources, hardware, market and others), plus a synthesis, an audit of the load-bearing claims and a patent and prior-art check. 3 lanes not run. Several lanes are not yet audited by a second model, and the audits found wrong citations in some, so the notes stay private until their citations are verified. | Private notes |
 | Scrutiniser benchmark | **Built and run on my data.** 1,887 single-choice decisions (2 Jul to 10 Nov 2026) from my Claude Code sessions; 1,510 for training, 375 held out by time (3 to 10 Nov), test ids frozen by SHA-256. | [`build/council_eval/`](build/council_eval/) |
-| Baselines | **Run** on the 375 held-out decisions, options shuffled, recommendation hidden. Chance is 39.8%. Best untrained arm: qwen3:4b zero-shot, **65.6%** (95% CI 60.7 to 70.2). | Table below |
+| Baselines | **Run** on the 375 held-out decisions, options shuffled, recommendation hidden. Best untrained setup: qwen3:4b zero-shot, **65.6%**. | [Results above](#how-a-decision-is-scored) |
 | Privacy pipeline | Stages 0 to 5 and 7 **built and tested** for agent decisions. Message and note sources are **designed, not built**. | [docs/PRIVACY-PIPELINE.md](docs/PRIVACY-PIPELINE.md) |
-| Laptop training test | **Run on synthetic data only.** Qwen3-1.7B, 4-bit QLoRA on an RTX 3060 Laptop GPU (6 GB): exit 0, 27.5 min of training, peak 3.34 GB VRAM allocated. Canary audit: 0 of 5 leaked; its positive control caught 5 of 5. | [`build/train/`](build/train/) |
+| Laptop training test | **Run on synthetic data only.** Qwen3-1.7B, 4-bit QLoRA on an RTX 3060 Laptop GPU (6 GB): exit 0, 27.5 min of training, peak 3.34 GB of graphics memory. Memorisation check: none of 5 planted canary rows leaked, and the same check caught all 5 when a small model was deliberately trained to memorise them. | [`build/train/`](build/train/) |
 | Scrutiniser LoRA on real data | **Not started.** It waits for my own review-gate approval of the cleaned training files. | |
-| Self-consistency retest | Tool **built** (a local web page that re-asks 40 held-out questions, to measure how often I agree with myself). Not taken yet. | [`build/retest/`](build/retest/) |
+| Self-consistency retest | Tool **built**: a local web page that re-asks 40 held-out questions, to measure how often I agree with myself. Not taken yet. | [`build/retest/`](build/retest/) |
 | Designer, Coder, Orchestrator | Design only. | |
 | Nightly reflect, sleep, dream, update | Design only. | |
 | Auto-answer mode | Design only. It will always show the agent's question with the council's pick preselected; it never answers silently. | [docs/PRIOR-ART.md](docs/PRIOR-ART.md) |
-
-### Held-out results (n = 375, options shuffled, recommendation hidden)
-
-| Arm | Accuracy | When I took the recommendation (n = 239) | When I overrode it (n = 53) |
-| --- | --- | --- | --- |
-| Random | 36.0% | 38.9% | 30.2% |
-| Always the first option | 38.1% | 39.3% | 37.7% |
-| Oracle: the agent's own recommendation (reads metadata the models cannot see) | 71.5% | 100% | **0%** |
-| qwen3:4b zero-shot, laptop GPU | **65.6%** | 79.9% | 17.0% |
-| qwen3:4b + 4 retrieved past decisions | 61.1% | 72.4% | 24.5% |
-
-The two right-hand columns cover the 292 decisions where the agent marked a recommendation; the other 83 had none
-to take or override. On unshuffled rows, "always answer option 1" scores 79.2%, which is why that number is never used. The
-oracle row is the trap: copying the agent beats every model overall and gets every override wrong.
-
-**The bar a trained Scrutiniser has to clear (fixed before training):** at least 70.6% overall (the best
-baseline plus 5 points) with McNemar p < 0.05 against it, **and** at least 24.5% on overrides, no material
-drop when I follow the recommendation, at most 1% unparsed replies, and zero canary leaks.
 
 ## What is in this repository
 
@@ -122,6 +152,7 @@ drop when I follow the recommendation, at most 1% unparsed replies, and zero can
 | [`build/retest/`](build/retest/) | The self-consistency retest: a loopback-only web page and scorer, with 14 tests and a headless smoke test on synthetic fixtures. |
 | [`docs/PRIVACY-PIPELINE.md`](docs/PRIVACY-PIPELINE.md) | The privacy design: hard rules, the stages, consent. |
 | [`docs/PRIOR-ART.md`](docs/PRIOR-ART.md) | Prior art and the defensive publication. |
+| [`assets/`](assets/), [`tools/banner/`](tools/banner/) | The banner (animated SVG, light and dark), the 1200 × 627 LinkedIn image and the 1280 × 640 social preview, and the script that builds them. |
 
 **Not in this repository, by design:** any data, transcript, export, corpus, review sheet, adapter or
 weights; the research notes; and every name other than mine. The code reads its private settings (alias
@@ -153,4 +184,6 @@ application on any of it.
 
 ## Licence
 
-Apache-2.0. See [LICENSE](LICENSE). By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)).
+Apache-2.0. See [LICENSE](LICENSE). By Ethan Soh ([Sohwhat6420](https://github.com/Sohwhat6420)). The banner's
+type is Instrument Serif, Hanken Grotesk and JetBrains Mono (SIL OFL 1.1, licences in
+[`tools/banner/fonts/`](tools/banner/fonts/)).

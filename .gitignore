@@ -13,3 +13,6 @@ results/
 __pycache__/
 .pytest_cache/
 node_modules/
+
+# README previews (rendered locally, not published)
+.preview/
