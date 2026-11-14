@@ -34,7 +34,7 @@ answers silently.
 
 ## What may be new, published here so it stays open
 
-To my knowledge no public benchmark scores a user-proxy on the cases where the user overrode the agent.
+To my knowledge, no public benchmark scores a model of a user on the times the user went against the agent.
 Absence from a search is not proof of absence; if you know of earlier work, please open an issue and it
 will be cited.
 
@@ -43,10 +43,10 @@ will be cited.
 The setting: an AI agent asks its user a multiple-choice question and usually marks one option as its own
 recommendation. A model of the user is trained and tested to predict which option the user picks.
 
-The problem: users follow the agent's recommendation most of the time (81.7% in this project's data), and
-the recommended option is usually listed first. A predictor that reads the marker, or the position, scores
-well without modelling the user at all: on this project's unshuffled rows, "always answer option 1" scores
-79.2%.
+The problem: users follow the agent's recommendation most of the time (about four times in five in this
+project's data), and the recommended option is usually listed first. A predictor that reads the marker, or the
+position, scores well without modelling the user at all: before shuffling, "always answer option 1" was also
+right about four times in five on this project's data.
 
 The method:
 
@@ -58,29 +58,31 @@ The method:
    reproducible but carries no information; map the prediction back through the inverse permutation.
 3. **Apply both in training and in testing.** The training view uses the same blind, shuffled prompt as
    the test, so the model cannot learn the cue during training either.
-4. **Split by time**, never at random: train on older decisions, test on the newest, with the test ids
-   frozen by SHA-256 before any arm is scored.
-5. **Report the oracle.** An arm that simply picks the agent's recommendation (using metadata the blind
-   model cannot see) is scored alongside, so readers see how much of any accuracy is mere agreement with
-   the agent.
+4. **Split by time**, never at random: train on older decisions, test on the newest, with the list of test
+   questions locked (by a SHA-256 fingerprint) before any model or rule is scored.
+5. **Report the copy-the-agent rule.** A rule that simply picks the agent's recommendation (using
+   information the blind model cannot see) is scored alongside, so readers see how much of any score is
+   mere agreement with the agent.
 
-### Method 2: the override-accuracy deployment gate (F4)
+### Method 2: a check on the times the user went against the agent, before the model may answer for them (F4)
 
-Overall accuracy can be passed by imitating the agent: in this project an oracle that always picks the
-agent's recommendation scores 71.5% overall and 0% on the cases where the user disagreed. So a candidate
-model of the user is only deployed if it clears, together:
+A model can score well overall just by imitating the agent. In this project, a rule that always picks the
+agent's recommendation looked strong overall and was wrong every time the user disagreed. So a candidate
+model of the user is only allowed to answer for the user if it clears all of these together:
 
-1. an overall accuracy floor (here: the best untrained baseline plus 5 points, 70.6%), with a paired
-   significance test against that baseline (exact McNemar, p < 0.05);
-2. **a floor on override accuracy**: accuracy on the subset of test cases where the user chose something
-   other than the agent's recommendation (here: at least 24.5%, the best baseline's measured value);
-3. no material drop in follow accuracy (the subset where the user took the recommendation), no more than 1%
-   unparsed replies, and zero canary leaks.
+1. an overall pass mark (here: about seven right in ten, clearly above the best untrained model), with a
+   paired significance test against that model showing the gain is not luck (the exact McNemar test,
+   p < 0.05);
+2. **a floor on the times the user went against the agent**: the share it gets right among the test cases
+   where the user chose something other than the agent's recommendation (here: at least the best untrained
+   model's measured share);
+3. no real drop on the cases where the user took the recommendation, almost no unusable replies, and no
+   planted marker row given away.
 
-The gates are fixed before training (pre-registered) and implemented in
-[`build/council_eval/metrics.py`](../build/council_eval/metrics.py) (`GATES`, `gates()`). In the test suite an
-imitator scoring 71.5% overall and 0% on overrides fails, and so did a laptop test adapter trained on
-synthetic rows that always copy the recommendation (87.0% overall, 0% on overrides).
+The pass marks are fixed before training (pre-registered). The exact thresholds are in
+[`build/council_eval/metrics.py`](../build/council_eval/metrics.py) (`GATES`, `gates()`). In the test suite a
+model that copies the agent fails, and so did a laptop test model trained on made-up rows that always copy
+the recommendation.
 
 ## Licence
 
